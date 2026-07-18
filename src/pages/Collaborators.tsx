@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import SEO from '../components/SEO';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import { 
@@ -166,6 +167,10 @@ export default function Collaborators() {
 
   return (
     <div className="pt-32 md:pt-40 pb-20 font-body min-h-screen relative bg-slate-50">
+      <SEO 
+        title="Our Collaborators & Partners" 
+        description="Discover the universities, colleges, and industry partners collaborating with FutureCodeAI to deliver top-tier education."
+      />
       <Toaster position="top-center" />
       
       {/* Background decoration */}

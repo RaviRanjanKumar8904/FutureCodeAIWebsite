@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Lock, GraduationCap, Building2, ShieldCheck, ArrowRight } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import SEO from '../components/SEO';
 
 type Role = 'student' | 'institute' | 'admin';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signInWithOAuth } = useAuth();
   
   const [role, setRole] = useState<Role>('student');
@@ -17,13 +19,26 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      if (user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/');
+      const from = (location.state as any)?.from;
+      if (from) {
+        navigate(from, { replace: true });
+        return;
+      }
+
+      switch (user.role) {
+        case 'admin':
+          navigate('/admin/dashboard', { replace: true });
+          break;
+        case 'institute':
+          navigate('/dashboard/institute', { replace: true });
+          break;
+        case 'student':
+        default:
+          navigate('/dashboard/student', { replace: true });
+          break;
       }
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.state]);
 
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
     if (provider === 'google') setLoadingGoogle(true);
@@ -63,6 +78,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen pt-20 bg-slate-900 flex items-center justify-center relative overflow-hidden font-body">
+      <SEO 
+        title="Login / Sign In" 
+        description="Access your FutureCodeAI dashboard. Secure login for students, institutes, and administrators."
+      />
       <Toaster position="top-center" />
       
       {/* 3D Animated Background Elements */}

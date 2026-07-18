@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
+import SEO from '../components/SEO';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { db } from '../firebase/config';
@@ -107,6 +108,10 @@ export default function Contact() {
 
   return (
     <div className="pt-32 md:pt-40 pb-20 font-body min-h-screen relative overflow-hidden">
+      <SEO 
+        title="Contact Us" 
+        description="Get in touch with FutureCodeAI. We are here to answer your questions and help you start your tech journey."
+      />
       <Toaster position="top-center" />
       
       {/* Background Blobs */}

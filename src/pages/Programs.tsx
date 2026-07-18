@@ -9,6 +9,7 @@ import CourseModal from '../components/programs/CourseModal';
 import EnquiryFormModal from '../components/programs/EnquiryFormModal';
 import type { TargetInfo } from '../components/programs/EnquiryFormModal';
 import CityCTA from '../components/programs/CityCTA';
+import SEO from '../components/SEO';
 
 const fallbackCourses: CourseData[] = [
   {
@@ -128,6 +129,10 @@ export default function Programs() {
 
   return (
     <div className="w-full relative bg-background min-h-screen">
+      <SEO 
+        title="Programs & Courses" 
+        description="Browse our comprehensive selection of tech courses, from Web Development and AI to Data Science and Blockchain."
+      />
       <BackgroundBlobs />
       
       <main className="w-full relative z-10">

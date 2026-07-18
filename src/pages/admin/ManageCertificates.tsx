@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db } from '../../firebase/config';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from 'firebase/firestore';
-import { Award, Plus, Trash2, Search, Copy, CheckCircle2, X } from 'lucide-react';
+import { collection, setDoc, updateDoc, getDocs, getDoc, doc, query, orderBy, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { Award, Plus, Trash2, Search, Copy, CheckCircle2, X, Upload } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import Papa from 'papaparse';
 
 interface Certificate {
   id: string;
@@ -14,6 +15,7 @@ interface Certificate {
   grade: string;
   issuedBy: string;
   createdAt: any;
+  revoked?: boolean;
 }
 
 export default function ManageCertificates() {
@@ -31,6 +33,12 @@ export default function ManageCertificates() {
     issueDate: new Date().toISOString().split('T')[0],
     grade: ''
   });
+
+  // Bulk Upload State
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkData, setBulkData] = useState<Array<{ studentName: string; courseName: string; issueDate: string; grade: string }>>([])
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const csvInputRef = useRef<HTMLInputElement>(null);
 
   const fetchCertificates = async () => {
     setLoading(true);
@@ -51,10 +59,21 @@ export default function ManageCertificates() {
     fetchCertificates();
   }, []);
 
-  const handleGenerateId = () => {
+  const handleGenerateId = async (): Promise<string> => {
     const year = new Date().getFullYear();
-    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `FC-${year}-${randomStr}`;
+    let certId: string;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    do {
+      const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+      certId = `FC-${year}-${randomStr}`;
+      const existing = await getDoc(doc(db, 'certificates', certId));
+      if (!existing.exists()) return certId;
+      attempts++;
+    } while (attempts < maxAttempts);
+
+    throw new Error('Failed to generate a unique certificate ID after multiple attempts.');
   };
 
   const handleIssueCertificate = async (e: React.FormEvent) => {
@@ -68,9 +87,9 @@ export default function ManageCertificates() {
     const toastId = toast.loading("Issuing certificate...");
 
     try {
-      const certId = handleGenerateId();
+      const certId = await handleGenerateId();
       
-      await addDoc(collection(db, 'certificates'), {
+      await setDoc(doc(db, 'certificates', certId), {
         ...formData,
         certificateId: certId,
         issuedBy: user?.email || 'Admin',
@@ -101,7 +120,10 @@ export default function ManageCertificates() {
 
     const toastId = toast.loading("Revoking certificate...");
     try {
-      await deleteDoc(doc(db, 'certificates', id));
+      await updateDoc(doc(db, 'certificates', id), {
+        revoked: true,
+        revokedAt: serverTimestamp()
+      });
       toast.success("Certificate revoked successfully", { id: toastId });
       fetchCertificates();
     } catch (error) {
@@ -114,6 +136,102 @@ export default function ManageCertificates() {
     const url = `${window.location.origin}/verify?id=${id}`;
     navigator.clipboard.writeText(url);
     toast.success("Verification link copied!");
+  };
+
+  // ---- Bulk Upload Logic ----
+
+  const handleCsvParse = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const rows = results.data as any[];
+        const parsed = rows
+          .map(row => ({
+            studentName: (row.studentName || row['Student Name'] || '').trim(),
+            courseName: (row.courseName || row['Course Name'] || '').trim(),
+            issueDate: (row.issueDate || row['Issue Date'] || '').trim(),
+            grade: (row.grade || row['Grade'] || '').trim(),
+          }))
+          .filter(r => r.studentName && r.courseName);
+
+        if (parsed.length === 0) {
+          toast.error('CSV contains no valid rows. Ensure columns: studentName, courseName, issueDate, grade');
+          return;
+        }
+
+        setBulkData(parsed);
+        setShowBulkModal(true);
+      },
+      error: () => {
+        toast.error('Failed to parse CSV file');
+      }
+    });
+
+    // Reset input so re-selecting the same file works
+    if (csvInputRef.current) csvInputRef.current.value = '';
+  };
+
+  const generateIdSync = () => {
+    const year = new Date().getFullYear();
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `FC-${year}-${randomStr}`;
+  };
+
+  const handleBulkConfirm = async () => {
+    setBulkUploading(true);
+    const toastId = toast.loading(`Issuing ${bulkData.length} certificates...`);
+
+    try {
+      // Generate unique IDs for all rows first
+      const existingIds = new Set(certificates.map(c => c.certificateId));
+      const entries: Array<{ certId: string; row: typeof bulkData[0] }> = [];
+
+      for (const row of bulkData) {
+        let certId: string;
+        let attempts = 0;
+        do {
+          certId = generateIdSync();
+          attempts++;
+        } while ((existingIds.has(certId) || entries.some(e => e.certId === certId)) && attempts < 20);
+        entries.push({ certId, row });
+      }
+
+      // Write in batches of 500 (Firestore limit)
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < entries.length; i += BATCH_SIZE) {
+        const chunk = entries.slice(i, i + BATCH_SIZE);
+        const batch = writeBatch(db);
+
+        for (const { certId, row } of chunk) {
+          const ref = doc(db, 'certificates', certId);
+          batch.set(ref, {
+            studentName: row.studentName,
+            courseName: row.courseName,
+            issueDate: row.issueDate || new Date().toISOString().split('T')[0],
+            grade: row.grade || '',
+            certificateId: certId,
+            issuedBy: user?.email || 'Admin',
+            createdAt: serverTimestamp()
+          });
+        }
+
+        await batch.commit();
+      }
+
+      toast.success(`Successfully issued ${bulkData.length} certificates!`, { id: toastId });
+      setShowBulkModal(false);
+      setBulkData([]);
+      fetchCertificates();
+    } catch (error) {
+      console.error('Bulk upload error:', error);
+      toast.error('Bulk upload failed. Some certificates may not have been created.', { id: toastId });
+    } finally {
+      setBulkUploading(false);
+    }
   };
 
   const filteredData = certificates.filter(cert => 
@@ -138,14 +256,102 @@ export default function ManageCertificates() {
           </div>
         </div>
         
-        <button 
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm"
-        >
-          <Plus size={20} />
-          Issue Certificate
-        </button>
+        <div className="flex items-center gap-3">
+          <input
+            ref={csvInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleCsvParse}
+            className="hidden"
+            id="csv-upload"
+          />
+          <button 
+            onClick={() => csvInputRef.current?.click()}
+            className="flex items-center gap-2 bg-white text-slate-700 border border-slate-200 px-5 py-2.5 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            <Upload size={20} />
+            Bulk Upload (CSV)
+          </button>
+          <button 
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <Plus size={20} />
+            Issue Certificate
+          </button>
+        </div>
       </div>
+
+      {/* Bulk Preview Modal */}
+      {showBulkModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <Upload size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">Confirm Bulk Upload</h2>
+                  <p className="text-xs font-medium text-slate-500">{bulkData.length} certificates will be issued.</p>
+                </div>
+              </div>
+              <button onClick={() => { setShowBulkModal(false); setBulkData([]); }} className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="overflow-auto flex-1 p-6">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider font-bold">
+                    <th className="p-3">#</th>
+                    <th className="p-3">Student Name</th>
+                    <th className="p-3">Course</th>
+                    <th className="p-3">Issue Date</th>
+                    <th className="p-3">Grade</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {bulkData.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/50">
+                      <td className="p-3 text-slate-400 font-mono">{idx + 1}</td>
+                      <td className="p-3 font-bold text-slate-900">{row.studentName}</td>
+                      <td className="p-3 text-slate-600">{row.courseName}</td>
+                      <td className="p-3 text-slate-500">{row.issueDate || 'Today'}</td>
+                      <td className="p-3 text-slate-500">{row.grade || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="p-6 border-t border-slate-100 flex gap-3 shrink-0">
+              <button
+                onClick={() => { setShowBulkModal(false); setBulkData([]); }}
+                className="flex-1 px-4 py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                disabled={bulkUploading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkConfirm}
+                disabled={bulkUploading}
+                className="flex-1 px-4 py-2.5 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {bulkUploading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Issuing...
+                  </>
+                ) : (
+                  `Issue All ${bulkData.length} Certificates`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       {showModal && (
@@ -312,28 +518,37 @@ export default function ManageCertificates() {
                       </div>
                     </td>
                     <td className="p-4 align-top text-center">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
-                        <CheckCircle2 size={14} />
-                        Valid
-                      </span>
+                      {cert.revoked ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700">
+                          <X size={14} />
+                          Revoked
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+                          <CheckCircle2 size={14} />
+                          Valid
+                        </span>
+                      )}
                     </td>
                     <td className="p-4 pr-6 align-top text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
-                          onClick={() => copyVerificationLink(cert.id)}
+                          onClick={() => copyVerificationLink(cert.certificateId)}
                           className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center gap-1.5"
                           title="Copy Verification Link"
                         >
                           <Copy size={18} />
                           <span className="text-xs font-bold hidden sm:inline-block">Link</span>
                         </button>
-                        <button 
-                          onClick={() => handleRevoke(cert.id, cert.certificateId)}
-                          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                          title="Revoke Certificate"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        {!cert.revoked && (
+                          <button 
+                            onClick={() => handleRevoke(cert.id, cert.certificateId)}
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            title="Revoke Certificate"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

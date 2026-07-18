@@ -16,16 +16,8 @@ import {
   Tooltip, 
   ResponsiveContainer
 } from 'recharts';
-
-const MOCK_CHART_DATA = [
-  { name: 'Jan', enquiries: 400, enrollments: 240 },
-  { name: 'Feb', enquiries: 300, enrollments: 139 },
-  { name: 'Mar', enquiries: 200, enrollments: 980 },
-  { name: 'Apr', enquiries: 278, enrollments: 390 },
-  { name: 'May', enquiries: 189, enrollments: 480 },
-  { name: 'Jun', enquiries: 239, enrollments: 380 },
-  { name: 'Jul', enquiries: 349, enrollments: 430 },
-];
+import { db } from '../../firebase/config';
+import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -35,36 +27,93 @@ export default function AdminDashboard() {
     enquiries: 0
   });
   const [recentEnquiries, setRecentEnquiries] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<Array<{ name: string; enquiries: number }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch counts (using getCountFromServer for efficiency)
-        // Wait, for users with specific roles, getCountFromServer with queries requires indexes.
-        // We will just do a standard getDocs for now or use mock numbers if empty.
-        
-        // Simulating data fetch for now to ensure it looks good immediately
-        setTimeout(() => {
-          setStats({
-            students: 1250,
-            institutes: 45,
-            courses: 24,
-            enquiries: 180
+        // --- Real-time stats from Firestore ---
+        const [usersSnap, coursesSnap, enquiriesSnap] = await Promise.all([
+          getDocs(collection(db, 'users')),
+          getDocs(collection(db, 'courses')),
+          getDocs(collection(db, 'enquiries')),
+        ]);
+
+        const usersData = usersSnap.docs.map(d => d.data());
+        const studentCount = usersData.filter(u => u.role === 'student').length;
+        const instituteCount = usersData.filter(u => u.role === 'institute').length;
+
+        setStats({
+          students: studentCount,
+          institutes: instituteCount,
+          courses: coursesSnap.size,
+          enquiries: enquiriesSnap.size
+        });
+
+        // --- Recent enquiries sidebar ---
+        const allEnquiries = enquiriesSnap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+        // Sort by createdAt descending, take top 5
+        const sorted = allEnquiries
+          .sort((a, b) => {
+            const aTime = a.createdAt?.toMillis?.() || 0;
+            const bTime = b.createdAt?.toMillis?.() || 0;
+            return bTime - aTime;
+          })
+          .slice(0, 5)
+          .map(enq => {
+            let dateStr = 'N/A';
+            if (enq.createdAt?.toDate) {
+              const d = enq.createdAt.toDate();
+              const diffMs = Date.now() - d.getTime();
+              const diffH = Math.floor(diffMs / 3600000);
+              if (diffH < 1) dateStr = 'Just now';
+              else if (diffH < 24) dateStr = `${diffH}h ago`;
+              else dateStr = `${Math.floor(diffH / 24)}d ago`;
+            }
+            return { ...enq, date: dateStr };
           });
-          
-          setRecentEnquiries([
-            { id: 1, name: 'Rahul Kumar', email: 'rahul@example.com', type: 'Partnership', date: 'Just now' },
-            { id: 2, name: 'Priya Singh', email: 'priya@example.com', type: 'Course Inquiry', date: '2 hours ago' },
-            { id: 3, name: 'Amit Sharma', email: 'amit@example.com', type: 'Contact', date: '5 hours ago' },
-            { id: 4, name: 'Neha Gupta', email: 'neha@example.com', type: 'Course Inquiry', date: '1 day ago' },
-          ]);
-          
-          setLoading(false);
-        }, 1000);
+
+        setRecentEnquiries(sorted);
+
+        // --- Chart: enquiries per day for last 30 days ---
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+        const chartQuery = query(
+          collection(db, 'enquiries'),
+          where('createdAt', '>=', Timestamp.fromDate(thirtyDaysAgo))
+        );
+        const chartSnap = await getDocs(chartQuery);
+
+        // Build a map of day -> count
+        const dayMap: Record<string, number> = {};
+        // Pre-fill all 30 days so chart has no gaps
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const key = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+          dayMap[key] = 0;
+        }
+
+        chartSnap.docs.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.createdAt?.toDate) {
+            const d = data.createdAt.toDate() as Date;
+            const key = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+            if (key in dayMap) {
+              dayMap[key]++;
+            }
+          }
+        });
+
+        const chartArr = Object.entries(dayMap).map(([name, enquiries]) => ({ name, enquiries }));
+        setChartData(chartArr);
 
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
+      } finally {
         setLoading(false);
       }
     };
@@ -140,12 +189,12 @@ export default function AdminDashboard() {
         {/* Main Chart */}
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-slate-900">Growth Overview</h3>
-            <p className="text-sm text-slate-500">Enquiries and enrollments over time</p>
+            <h3 className="text-lg font-bold text-slate-900">Enquiries — Last 30 Days</h3>
+            <p className="text-sm text-slate-500">Daily enquiry volume from Firestore</p>
           </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={MOCK_CHART_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorEnquiries" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
@@ -163,7 +212,6 @@ export default function AdminDashboard() {
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Area type="monotone" dataKey="enquiries" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorEnquiries)" />
-                <Area type="monotone" dataKey="enrollments" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorEnrollments)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

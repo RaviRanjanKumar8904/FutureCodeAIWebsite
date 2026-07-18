@@ -8,6 +8,7 @@ import InternshipModal from '../components/internships/InternshipModal';
 import InternshipTimeline from '../components/internships/InternshipTimeline';
 import EnquiryFormModal from '../components/programs/EnquiryFormModal';
 import type { TargetInfo } from '../components/programs/EnquiryFormModal';
+import SEO from '../components/SEO';
 
 const fallbackInternships: InternshipData[] = [
   {
@@ -71,6 +72,10 @@ export default function Internships() {
 
   return (
     <div className="w-full relative bg-background min-h-screen">
+      <SEO 
+        title="Internships" 
+        description="Kickstart your career with top tech internships offered by FutureCodeAI and our industry partners."
+      />
       <BackgroundBlobs />
       
       <main className="w-full relative z-10">

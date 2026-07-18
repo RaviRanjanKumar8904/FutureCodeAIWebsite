@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import BackgroundBlobs from '../components/BackgroundBlobs';
+import SEO from '../components/SEO';
 
 // We will build these components next
 import AboutHero from '../components/about/AboutHero';
@@ -63,6 +64,10 @@ export default function About() {
 
   return (
     <div className="w-full relative bg-background min-h-screen">
+      <SEO 
+        title="About Us" 
+        description="Learn more about FutureCodeAI, our mission to democratize tech education, and the team behind our innovative programs."
+      />
       <BackgroundBlobs />
       
       <main className="w-full relative z-10">

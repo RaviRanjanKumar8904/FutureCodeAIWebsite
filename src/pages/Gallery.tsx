@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../firebase/config';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import SEO from '../components/SEO';
 
 interface GalleryImage {
   id: string;
@@ -98,7 +99,10 @@ export default function Gallery() {
 
   return (
     <div className="pt-32 md:pt-40 pb-20 font-body min-h-screen relative bg-slate-50">
-      
+      <SEO 
+        title="Gallery" 
+        description="Explore the FutureCodeAI gallery to see our campus, events, student projects, and hackathons."
+      />
       {/* Background decoration */}
       <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
 

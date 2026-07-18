@@ -92,15 +92,19 @@ export default function ManageAdmins() {
         createdAt: new Date().toISOString()
       });
       
-      // 2. Also ensure their role is updated in the users collection
-      // (This requires admin privileges, which the super admin has)
+      // 2. If the user already exists, promote them immediately.
+      //    If they don't exist yet, store a pendingRole flag so that
+      //    AuthContext promotes them on their very first sign-in.
       const userRef = doc(db, 'users', newUid);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         await setDoc(userRef, { role: 'admin' }, { merge: true });
+        toast.success("Admin added — role updated immediately.");
+      } else {
+        // User hasn't signed up yet; store the intent on the admins doc
+        await setDoc(doc(db, 'admins', newUid), { pendingRole: 'admin' }, { merge: true });
+        toast.success("Admin allow-listed — role will apply on their first sign-in.");
       }
-
-      toast.success("Admin successfully added to allow-list");
       setAdmins([...admins, { 
         id: newUid, 
         email: newEmail, 

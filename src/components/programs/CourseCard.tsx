@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Clock } from 'lucide-react';
+import { Clock, Users } from 'lucide-react';
 import Reveal from '../Reveal';
 
 export interface CourseData {
@@ -20,6 +20,8 @@ export interface CourseData {
   syllabus: { title: string; topics: string[] }[];
   batchTimings: string;
   isActive: boolean;
+  totalSeats?: number;
+  filledSeats?: number;
 }
 
 interface CourseCardProps {
@@ -81,6 +83,21 @@ export default function CourseCard({ course, index, onClick }: CourseCardProps) 
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-white/90 backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-primary shadow-sm uppercase tracking-wider">
             {course.category}
           </div>
+          {course.totalSeats != null && course.totalSeats > 0 && (() => {
+            const seatsLeft = Math.max(0, course.totalSeats - (course.filledSeats || 0));
+            return (
+              <div className={`absolute top-2 right-2 sm:top-4 sm:right-4 z-10 backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-1 ${
+                seatsLeft === 0
+                  ? 'bg-red-500/90 text-white'
+                  : seatsLeft <= 5
+                    ? 'bg-amber-500/90 text-white'
+                    : 'bg-emerald-500/90 text-white'
+              }`}>
+                <Users size={10} className="sm:w-3 sm:h-3" />
+                {seatsLeft === 0 ? 'Full' : `${seatsLeft} seats left`}
+              </div>
+            );
+          })()}
           <img 
             src={course.thumbnailUrl} 
             alt={course.title}

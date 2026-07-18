@@ -10,6 +10,7 @@ import {
   getDoc, 
   setDoc, 
   updateDoc,
+  onSnapshot,
   serverTimestamp 
 } from 'firebase/firestore';
 
@@ -45,32 +46,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeSnapshot: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      // Clean up any previous Firestore snapshot listener
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+
       if (firebaseUser) {
-        // Fetch user document from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data() as User;
-          
-          // If institute is still pending, don't log them in fully in context
-          if (userData.role === 'institute' && userData.status === 'pending_verification') {
-            await auth.signOut();
-            setUser(null);
+        const userRef = doc(db, 'users', firebaseUser.uid);
+
+        // Use onSnapshot for live role updates (promotions/demotions)
+        unsubscribeSnapshot = onSnapshot(userRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const userData = snapshot.data() as User;
+
+            // If institute is still pending, don't log them in fully
+            if (userData.role === 'institute' && userData.status === 'pending_verification') {
+              auth.signOut();
+              setUser(null);
+            } else {
+              setUser(userData);
+            }
           } else {
-            setUser(userData);
+            // No user doc yet — they're mid-signup; signInWithOAuth will create it
           }
-        } else {
-          // If no doc exists, they might be in the middle of signing up.
-          // signInWithOAuth will create the document and call setUser.
-          // For now, we do nothing and wait for signInWithOAuth to complete.
-        }
+          setLoading(false);
+        });
       } else {
         setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+    };
   }, []);
 
   const signInWithOAuth = async (role: 'student' | 'admin' | 'institute', providerId: 'google' | 'github') => {
@@ -91,16 +107,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('pending_verification');
       }
       
-      setUser(existingData);
+      // onSnapshot will pick up the existing data and call setUser
     } else {
-      // User does not exist, creating new user
-      if (role === 'admin' && firebaseUser.email !== 'raviranjan8904@gmail.com') {
-        await auth.signOut();
-        throw new Error('access_denied'); // Admin accounts are invite-only
-      }
+      // --- New user creation ---
+      // Check if they've been pre-allow-listed as an admin
+      const adminSnap = await getDoc(doc(db, 'admins', firebaseUser.uid));
+      const isPreApprovedAdmin = adminSnap.exists() && adminSnap.data()?.pendingRole === 'admin';
 
       // Hardcode super admin override
-      const finalRole = firebaseUser.email === 'raviranjan8904@gmail.com' ? 'admin' : role;
+      const isSuperAdmin = firebaseUser.email === 'raviranjan8904@gmail.com';
+
+      let finalRole: 'student' | 'admin' | 'institute';
+
+      if (isSuperAdmin || isPreApprovedAdmin) {
+        finalRole = 'admin';
+      } else if (role === 'admin') {
+        // Non-pre-approved user trying to sign up as admin
+        await auth.signOut();
+        throw new Error('access_denied');
+      } else {
+        finalRole = role;
+      }
 
       const newUser: User = {
         uid: firebaseUser.uid,
@@ -116,12 +143,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: serverTimestamp()
       });
 
-      if (role === 'institute') {
+      // If they were pre-approved, clear the pendingRole flag from the admins doc
+      if (isPreApprovedAdmin) {
+        await updateDoc(doc(db, 'admins', firebaseUser.uid), { pendingRole: null });
+      }
+
+      if (finalRole === 'institute') {
         await auth.signOut();
         throw new Error('pending_verification');
       }
 
-      setUser(newUser);
+      // onSnapshot will pick up the newly created doc and call setUser
     }
   };
 

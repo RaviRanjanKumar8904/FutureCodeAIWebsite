@@ -1,5 +1,5 @@
 import Reveal from '../Reveal';
-import { CheckCircle2, XCircle, Download, Calendar, MapPin, BookOpen, User } from 'lucide-react';
+import { CheckCircle2, XCircle, Download, Calendar, MapPin, BookOpen, User, ShieldAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface CertificateData {
@@ -13,7 +13,7 @@ interface CertificateData {
 }
 
 interface ResultCardProps {
-  status: 'idle' | 'loading' | 'success' | 'error';
+  status: 'idle' | 'loading' | 'success' | 'error' | 'revoked';
   data: CertificateData | null;
 }
 
@@ -55,6 +55,17 @@ export default function ResultCard({ status, data }: ResultCardProps) {
             >
               Contact Support
             </Link>
+          </div>
+        )}
+
+        {status === 'revoked' && (
+          <div className="bg-white border-2 border-amber-100 rounded-[2rem] p-8 md:p-12 shadow-xl text-center relative overflow-hidden mt-8">
+            <div className="absolute top-0 left-0 w-full h-2 bg-amber-500" />
+            <ShieldAlert className="mx-auto text-amber-500 mb-6" size={64} />
+            <h2 className="text-3xl font-extrabold text-text-heading mb-4">Certificate Revoked</h2>
+            <p className="text-lg text-slate-500 max-w-lg mx-auto">
+              This certificate has been revoked by the issuer and is no longer valid. If you believe this is an error, please contact the issuing institution.
+            </p>
           </div>
         )}
 

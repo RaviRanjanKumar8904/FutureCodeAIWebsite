@@ -1,5 +1,9 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, Clock, Search, Filter } from 'lucide-react';
+import { db } from '../../firebase/config';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useAuth } from '../../context/AuthContext';
 
 interface Enquiry {
   id: string;
@@ -11,14 +15,42 @@ interface Enquiry {
   status: 'New' | 'Contacted' | 'Enrolled' | 'Closed';
 }
 
-const MOCK_ENQUIRIES: Enquiry[] = [
-  { id: '1', name: 'Rohan Kumar', contact: '+91 9876543210', email: 'rohan@example.com', interest: 'Full Stack Web Development', date: 'Today, 10:30 AM', status: 'New' },
-  { id: '2', name: 'Sneha Patel', contact: '+91 9876543211', email: 'sneha@example.com', interest: 'Data Science Internship', date: 'Yesterday', status: 'Contacted' },
-  { id: '3', name: 'Amit Singh', contact: '+91 9876543212', email: 'amit@example.com', interest: 'AI & Prompt Engineering', date: '14 Jul 2024', status: 'Enrolled' },
-  { id: '4', name: 'Kavita Das', contact: '+91 9876543213', email: 'kavita@example.com', interest: 'Frontend Development', date: '12 Jul 2024', status: 'Closed' },
-];
-
 export default function InstituteEnquiries() {
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEnquiries = async () => {
+      if (!user) return;
+      
+      try {
+        const q = query(
+          collection(db, 'enquiries'), 
+          where('instituteId', '==', user.uid)
+        );
+        const snapshot = await getDocs(q);
+        const fetchedData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Enquiry[];
+        
+        setEnquiries(fetchedData);
+      } catch (error) {
+        console.error("Error fetching enquiries:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnquiries();
+  }, [user]);
+
+  const filteredEnquiries = enquiries.filter(enq => 
+    (enq.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (enq.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -33,6 +65,8 @@ export default function InstituteEnquiries() {
             <input 
               type="text" 
               placeholder="Search leads..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full md:w-64"
             />
           </div>
@@ -55,37 +89,54 @@ export default function InstituteEnquiries() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_ENQUIRIES.map((enq, idx) => (
-                <motion.tr 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  key={enq.id} 
-                  className="border-b border-gray-50 hover:bg-slate-50/50 transition-colors"
-                >
-                  <td className="p-4 pl-6 font-bold text-text-heading">{enq.name}</td>
-                  <td className="p-4">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-sm font-medium text-slate-700 flex items-center gap-1.5"><Phone size={14} className="text-slate-400"/> {enq.contact}</span>
-                      <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5"><Mail size={14} className="text-slate-400"/> {enq.email}</span>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-500 font-medium">
+                    <div className="flex justify-center items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      Loading enquiries...
                     </div>
                   </td>
-                  <td className="p-4 text-sm font-bold text-primary bg-primary/5 rounded-lg inline-block mt-3 ml-2">{enq.interest}</td>
-                  <td className="p-4 text-sm font-medium text-slate-500">
-                    <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400"/> {enq.date}</span>
+                </tr>
+              ) : filteredEnquiries.length > 0 ? (
+                filteredEnquiries.map((enq, idx) => (
+                  <motion.tr 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    key={enq.id} 
+                    className="border-b border-gray-50 hover:bg-slate-50/50 transition-colors"
+                  >
+                    <td className="p-4 pl-6 font-bold text-text-heading">{enq.name || 'Unknown'}</td>
+                    <td className="p-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-medium text-slate-700 flex items-center gap-1.5"><Phone size={14} className="text-slate-400"/> {enq.contact || 'N/A'}</span>
+                        <span className="text-xs font-medium text-slate-500 flex items-center gap-1.5"><Mail size={14} className="text-slate-400"/> {enq.email || 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-sm font-bold text-primary bg-primary/5 rounded-lg inline-block mt-3 ml-2">{enq.interest || 'N/A'}</td>
+                    <td className="p-4 text-sm font-medium text-slate-500">
+                      <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-400"/> {enq.date || 'N/A'}</span>
+                    </td>
+                    <td className="p-4 pr-6 text-right">
+                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
+                        enq.status === 'New' ? 'bg-amber-100 text-amber-700 animate-pulse' :
+                        enq.status === 'Contacted' ? 'bg-blue-100 text-blue-700' :
+                        enq.status === 'Enrolled' ? 'bg-green-100 text-green-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        {enq.status || 'Pending'}
+                      </span>
+                    </td>
+                  </motion.tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-500 font-medium">
+                    {searchTerm ? 'No enquiries found matching your search.' : 'No enquiries have been received yet.'}
                   </td>
-                  <td className="p-4 pr-6 text-right">
-                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
-                      enq.status === 'New' ? 'bg-amber-100 text-amber-700 animate-pulse' :
-                      enq.status === 'Contacted' ? 'bg-blue-100 text-blue-700' :
-                      enq.status === 'Enrolled' ? 'bg-green-100 text-green-700' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {enq.status}
-                    </span>
-                  </td>
-                </motion.tr>
-              ))}
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

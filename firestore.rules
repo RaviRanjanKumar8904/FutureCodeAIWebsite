@@ -184,11 +184,8 @@ service cloud.firestore {
     // CERTIFICATES COLLECTION
     // ----------------------------------------------------------------------
     match /certificates/{certId} {
-      // Anyone can verify (read) a certificate if they have the ID
-      // Students can also read their own certificates (if we were to query them)
-      allow read: if isAdmin() || (isStudent() && resource.data.studentId == request.auth.uid) || true; // true allows public verification GETs
-      
-      // Only admins can issue (write) certificates. Institutes CANNOT issue certificates.
+      allow get: if true;
+      allow list: if isAdmin() || (isStudent() && resource.data.studentId == request.auth.uid);
       allow write: if isAdmin();
     }
   }

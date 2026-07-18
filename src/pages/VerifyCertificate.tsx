@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import BackgroundBlobs from '../components/BackgroundBlobs';
 import VerifyHero from '../components/verify/VerifyHero';
 import ResultCard from '../components/verify/ResultCard';
 import ExplainerSection from '../components/verify/ExplainerSection';
+import SEO from '../components/SEO';
 
 // Note on Security & Rate Limiting:
 // 1. Rate Limiting: We implement a basic client-side rate limit using sessionStorage.
@@ -30,9 +32,18 @@ const MOCK_CERTIFICATE = {
 };
 
 export default function VerifyCertificate() {
+  const [searchParams] = useSearchParams();
   const [certificateId, setCertificateId] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'revoked'>('idle');
   const [data, setData] = useState<any | null>(null);
+
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id');
+    if (idFromUrl) {
+      setCertificateId(idFromUrl);
+      handleVerify(idFromUrl);
+    }
+  }, []);
 
   const checkRateLimit = () => {
     const now = Date.now();
@@ -51,8 +62,9 @@ export default function VerifyCertificate() {
     return true;
   };
 
-  const handleVerify = async () => {
-    if (!certificateId.trim()) return;
+  const handleVerify = async (idToVerify?: string) => {
+    const id = typeof idToVerify === 'string' ? idToVerify : certificateId;
+    if (!id.trim()) return;
 
     if (!checkRateLimit()) {
       alert("You have exceeded the maximum number of verification attempts. Please try again in a minute.");
@@ -63,7 +75,7 @@ export default function VerifyCertificate() {
     setData(null);
 
     // Mock Fallback for Development (Offline Mode)
-    if (certificateId.trim().toUpperCase() === "FC-2026-DEMO") {
+    if (id.trim().toUpperCase() === "FC-2026-DEMO") {
       setTimeout(() => {
         setData(MOCK_CERTIFICATE);
         setStatus('success');
@@ -72,18 +84,17 @@ export default function VerifyCertificate() {
     }
 
     try {
-      const q = query(
-        collection(db, 'certificates'), 
-        where('certificateId', '==', certificateId.trim())
-      );
+      const docRef = doc(db, 'certificates', id.trim());
+      const docSnap = await getDoc(docRef);
       
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        // Assuming there's only one certificate per ID
-        const docData = querySnapshot.docs[0].data();
+      if (docSnap.exists()) {
+        const docData = docSnap.data();
         setData(docData);
-        setStatus('success');
+        if (docData.revoked === true) {
+          setStatus('revoked');
+        } else {
+          setStatus('success');
+        }
       } else {
         setStatus('error');
       }
@@ -96,6 +107,10 @@ export default function VerifyCertificate() {
 
   return (
     <div className="w-full relative bg-background min-h-screen">
+      <SEO 
+        title="Verify Certificate" 
+        description="Verify the authenticity of FutureCodeAI certificates securely using our digital verification portal."
+      />
       <BackgroundBlobs />
       
       <main className="w-full relative z-10">

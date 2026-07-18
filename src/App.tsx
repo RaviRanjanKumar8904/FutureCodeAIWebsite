@@ -1,40 +1,47 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import SmoothScroll from './components/SmoothScroll';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Gallery from './pages/Gallery';
-import Collaborators from './pages/Collaborators';
-import VerifyCertificate from './pages/VerifyCertificate';
-import Programs from './pages/Programs';
-import Internships from './pages/Internships';
-import AdminLayout from './layouts/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import ManageCollaborators from './pages/admin/ManageCollaborators';
-import ManageAdmins from './pages/admin/ManageAdmins';
-import ManageEnquiries from './pages/admin/ManageEnquiries';
-import ManageCourses from './pages/admin/ManageCourses';
-import ActivityLogs from './pages/admin/ActivityLogs';
-import ManageGallery from './pages/admin/ManageGallery';
-import ManageCertificates from './pages/admin/ManageCertificates';
-import ManageStudents from './pages/admin/ManageStudents';
-import ManageInternships from './pages/admin/ManageInternships';
-import NotFound from './pages/NotFound';
-import StudentDashboard from './pages/StudentDashboard';
-import InstituteDashboard from './pages/InstituteDashboard';
+import GlobalLoader from './components/GlobalLoader';
+
+const Home = lazy(() => import('./pages/Home'));
+const Login = lazy(() => import('./pages/Login'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const Collaborators = lazy(() => import('./pages/Collaborators'));
+const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate'));
+const Programs = lazy(() => import('./pages/Programs'));
+const Internships = lazy(() => import('./pages/Internships'));
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const ManageCollaborators = lazy(() => import('./pages/admin/ManageCollaborators'));
+const ManageAdmins = lazy(() => import('./pages/admin/ManageAdmins'));
+const ManageEnquiries = lazy(() => import('./pages/admin/ManageEnquiries'));
+const ManageCourses = lazy(() => import('./pages/admin/ManageCourses'));
+const ActivityLogs = lazy(() => import('./pages/admin/ActivityLogs'));
+const ManageGallery = lazy(() => import('./pages/admin/ManageGallery'));
+const ManageCertificates = lazy(() => import('./pages/admin/ManageCertificates'));
+const ManageStudents = lazy(() => import('./pages/admin/ManageStudents'));
+const ManageInternships = lazy(() => import('./pages/admin/ManageInternships'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
+const InstituteDashboard = lazy(() => import('./pages/InstituteDashboard'));
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import WhatsAppButton from './components/WhatsAppButton';
 
 function App() {
   return (
+    <HelmetProvider>
     <AuthProvider>
     <Router>
       <SmoothScroll>
         <div className="flex flex-col min-h-screen">
           <Navbar />
+          <Suspense fallback={<GlobalLoader fullScreen />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -86,11 +93,14 @@ function App() {
             {/* 404 Catch-All Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
+          <WhatsAppButton />
           <Footer />
         </div>
       </SmoothScroll>
     </Router>
     </AuthProvider>
+    </HelmetProvider>
   );
 }
 

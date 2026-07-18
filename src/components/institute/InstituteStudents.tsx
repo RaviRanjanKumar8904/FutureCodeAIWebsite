@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, ShieldAlert } from 'lucide-react';
+import { db } from '../../firebase/config';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useAuth } from '../../context/AuthContext';
 
 interface EnrolledStudent {
   id: string;
@@ -11,20 +14,41 @@ interface EnrolledStudent {
   status: 'Active' | 'Completed' | 'Dropped';
 }
 
-const MOCK_STUDENTS: EnrolledStudent[] = [
-  { id: '1', name: 'Aarav Sharma', course: 'Full Stack Web Development', batch: 'June 2024 - Morning', date: '12 Jun 2024', status: 'Active' },
-  { id: '2', name: 'Priya Singh', course: 'Data Science & ML', batch: 'July 2024 - Weekend', date: '05 Jul 2024', status: 'Active' },
-  { id: '3', name: 'Rahul Verma', course: 'Full Stack Web Development', batch: 'Jan 2024 - Evening', date: '10 Jan 2024', status: 'Completed' },
-  { id: '4', name: 'Neha Gupta', course: 'AI & Prompt Engineering', batch: 'June 2024 - Morning', date: '15 Jun 2024', status: 'Active' },
-  { id: '5', name: 'Vikram Patel', course: 'Data Science & ML', batch: 'Mar 2024 - Weekend', date: '01 Mar 2024', status: 'Dropped' },
-];
-
 export default function InstituteStudents() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
+  const [students, setStudents] = useState<EnrolledStudent[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredStudents = MOCK_STUDENTS.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.course.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (!user) return;
+      
+      try {
+        const q = query(
+          collection(db, 'enrollments'), 
+          where('instituteId', '==', user.uid)
+        );
+        const snapshot = await getDocs(q);
+        const fetchedData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as EnrolledStudent[];
+        
+        setStudents(fetchedData);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, [user]);
+
+  const filteredStudents = students.filter(s => 
+    (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.course || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -72,7 +96,16 @@ export default function InstituteStudents() {
               </tr>
             </thead>
             <tbody>
-              {filteredStudents.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-slate-500 font-medium">
+                    <div className="flex justify-center items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      Loading students...
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student, idx) => (
                   <motion.tr 
                     initial={{ opacity: 0, y: 10 }}
@@ -81,17 +114,18 @@ export default function InstituteStudents() {
                     key={student.id} 
                     className="border-b border-gray-50 hover:bg-slate-50/50 transition-colors"
                   >
-                    <td className="p-4 pl-6 font-bold text-text-heading">{student.name}</td>
-                    <td className="p-4 text-sm font-medium text-slate-600">{student.course}</td>
-                    <td className="p-4 text-sm font-medium text-slate-500">{student.batch}</td>
-                    <td className="p-4 text-sm font-medium text-slate-500">{student.date}</td>
+                    <td className="p-4 pl-6 font-bold text-text-heading">{student.name || 'Unknown'}</td>
+                    <td className="p-4 text-sm font-medium text-slate-600">{student.course || 'N/A'}</td>
+                    <td className="p-4 text-sm font-medium text-slate-500">{student.batch || 'N/A'}</td>
+                    <td className="p-4 text-sm font-medium text-slate-500">{student.date || 'N/A'}</td>
                     <td className="p-4 pr-6 text-right">
                       <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
                         student.status === 'Active' ? 'bg-blue-100 text-blue-700' :
                         student.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                        'bg-red-100 text-red-700'
+                        student.status === 'Dropped' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'
                       }`}>
-                        {student.status}
+                        {student.status || 'Pending'}
                       </span>
                     </td>
                   </motion.tr>
@@ -99,7 +133,7 @@ export default function InstituteStudents() {
               ) : (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-slate-500 font-medium">
-                    No students found matching your search.
+                    {searchTerm ? 'No students found matching your search.' : 'No students have been enrolled yet.'}
                   </td>
                 </tr>
               )}
