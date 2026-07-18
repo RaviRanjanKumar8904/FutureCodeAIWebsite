@@ -62,7 +62,8 @@ export default function Login() {
           icon: '⏳'
         });
       } else {
-        toast.error('An error occurred during sign in');
+        console.error(error);
+        toast.error(`Sign in failed: ${error.message || 'Unknown error'}`);
       }
     } finally {
       setLoadingGoogle(false);
@@ -98,7 +99,7 @@ export default function Login() {
             rotateY: [-10, 10, -10]
           }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -left-12 md:left-24 top-1/3 opacity-30 text-primary drop-shadow-[0_0_30px_rgba(36,164,181,0.5)]"
+          className="hidden md:block absolute -left-12 md:left-24 top-1/3 opacity-30 text-primary drop-shadow-[0_0_30px_rgba(36,164,181,0.5)]"
           style={{ perspective: 1000 }}
         >
           <Shield size={180} strokeWidth={1} />
@@ -112,7 +113,7 @@ export default function Login() {
             rotateY: [15, -15, 15]
           }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -right-12 md:right-24 bottom-1/3 opacity-30 text-indigo-400 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]"
+          className="hidden md:block absolute -right-12 md:right-24 bottom-1/3 opacity-30 text-indigo-400 drop-shadow-[0_0_30px_rgba(99,102,241,0.5)]"
           style={{ perspective: 1000 }}
         >
           <Lock size={140} strokeWidth={1} />
@@ -124,7 +125,7 @@ export default function Login() {
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, type: 'spring', damping: 25 }}
-        className="w-full max-w-md mx-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-8 shadow-2xl relative z-10"
+        className="w-full max-w-md mx-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl relative z-10"
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 mb-6 shadow-glow-primary">
@@ -143,12 +144,12 @@ export default function Login() {
               <button
                 key={tab.id}
                 onClick={() => setRole(tab.id as Role)}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 rounded-xl text-sm font-bold transition-all duration-300 relative z-10 ${
+                className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 px-1 sm:px-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 relative z-10 ${
                   isActive ? 'text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                 }`}
               >
-                <Icon size={16} />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <Icon size={16} className="sm:w-4 sm:h-4 w-5 h-5" />
+                <span>{tab.label}</span>
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"

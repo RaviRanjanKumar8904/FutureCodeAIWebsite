@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { Building2, Search, CheckCircle2, MoreVertical, Eye, Image as ImageIcon } from 'lucide-react';
+import { Building2, Search, CheckCircle2, MoreVertical, Eye, Image as ImageIcon, Pencil } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import AddCollaboratorModal from '../../components/admin/AddCollaboratorModal';
 
 export default function ManageCollaborators() {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingCollab, setEditingCollab] = useState<any>(null);
   const [collaborators, setCollaborators] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved'>('All');
@@ -71,7 +74,13 @@ export default function ManageCollaborators() {
           </div>
         </div>
         
-        <button className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm">
+        <button 
+          onClick={() => {
+            setEditingCollab(null);
+            setIsAddModalOpen(true);
+          }}
+          className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+        >
           + Add Collaborator
         </button>
       </div>
@@ -179,6 +188,15 @@ export default function ManageCollaborators() {
                         <button className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
                           <Eye size={18} />
                         </button>
+                        <button 
+                          onClick={() => {
+                            setEditingCollab(collab);
+                            setIsAddModalOpen(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        >
+                          <Pencil size={18} />
+                        </button>
                         <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                           <MoreVertical size={18} />
                         </button>
@@ -191,6 +209,15 @@ export default function ManageCollaborators() {
           </table>
         </div>
       </div>
+      <AddCollaboratorModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingCollab(null);
+        }} 
+        onSuccess={fetchCollaborators}
+        initialData={editingCollab} 
+      />
     </div>
   );
 }

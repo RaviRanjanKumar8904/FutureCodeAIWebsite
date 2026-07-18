@@ -90,10 +90,14 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <Link 
                   to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : "/dashboard/student"}
-                  className="hidden md:flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-full font-bold hover:bg-indigo-600 transition-all shadow-glow-primary hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:-translate-y-0.5 active:scale-95"
+                  className={`hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full font-bold transition-all hover:-translate-y-0.5 active:scale-95 ${
+                    user.role === 'admin' 
+                      ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-[0_4px_20px_rgba(245,158,11,0.4)] hover:shadow-[0_0_20px_rgba(245,158,11,0.6)]' 
+                      : 'bg-primary text-white hover:bg-indigo-600 shadow-glow-primary hover:shadow-[0_0_20px_rgba(79,70,229,0.4)]'
+                  }`}
                 >
                   <LayoutDashboard size={18} />
-                  Dashboard
+                  {user.role === 'admin' ? 'Admin' : 'Dashboard'}
                 </Link>
                 <div className="relative">
                   <button 
@@ -115,10 +119,12 @@ export default function Navbar() {
                       <Link 
                         to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : "/dashboard/student"} 
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 text-sm font-medium text-slate-700 transition-colors"
+                        className={`flex items-center gap-2 px-4 py-3 hover:bg-slate-50 text-sm font-medium transition-colors ${
+                          user.role === 'admin' ? 'text-amber-600' : 'text-slate-700'
+                        }`}
                       >
                         <LayoutDashboard size={16} />
-                        Dashboard
+                        {user.role === 'admin' ? 'Admin' : 'Dashboard'}
                       </Link>
                       <button 
                         onClick={() => {
@@ -200,11 +206,13 @@ export default function Navbar() {
               <>
                 <Link 
                   to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : "/dashboard/student"} 
-                  className="flex items-center justify-center gap-2 text-base font-semibold text-text-heading py-2"
+                  className={`flex items-center justify-center gap-2 text-base font-semibold py-2 ${
+                    user.role === 'admin' ? 'text-amber-500' : 'text-text-heading'
+                  }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <LayoutDashboard size={18} />
-                  Dashboard
+                  {user.role === 'admin' ? 'Admin' : 'Dashboard'}
                 </Link>
                 <button 
                   onClick={() => {
