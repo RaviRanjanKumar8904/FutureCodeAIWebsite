@@ -10,7 +10,7 @@ function AbstractShapes() {
   
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.getElapsedTime() * 0.1;
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.1;
     }
   });
 
@@ -95,8 +95,8 @@ export default function HeroSection() {
           <Canvas camera={{ position: [0, 0, 5], fov: 45 }} style={{ touchAction: 'pan-y' }}>
             <ambientLight intensity={1.5} />
             <directionalLight position={[10, 10, 5]} intensity={2} />
-            <Environment preset="city" />
             <Suspense fallback={null}>
+              <Environment preset="city" />
               <PresentationControls 
                 global 
                 snap={true}
