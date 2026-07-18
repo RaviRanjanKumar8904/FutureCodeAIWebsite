@@ -124,6 +124,29 @@ export default function CourseModal({ course, onClose, onEnquire }: CourseModalP
                     </div>
                   </div>
 
+                  {(course.originalPrice || course.discountedPrice) && (
+                    <div className="bg-white rounded-xl p-4 border border-indigo-100 shadow-sm">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Course Fee</p>
+                      <div className="flex items-baseline gap-3">
+                        {course.discountedPrice && (
+                          <span className="text-3xl font-extrabold text-indigo-600">
+                            ₹{course.discountedPrice}<span className="text-sm text-slate-500 font-medium">/mo</span>
+                          </span>
+                        )}
+                        {course.originalPrice && (
+                          <span className="text-lg font-medium text-slate-400 line-through">
+                            ₹{course.originalPrice}/mo
+                          </span>
+                        )}
+                        {course.originalPrice && course.discountedPrice && (
+                          <span className="text-xs font-bold text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded-md ml-auto">
+                            {Math.round(((course.originalPrice - course.discountedPrice) / course.originalPrice) * 100)}% OFF
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="pt-6 border-t border-gray-200">
                     <button 
                       onClick={() => {

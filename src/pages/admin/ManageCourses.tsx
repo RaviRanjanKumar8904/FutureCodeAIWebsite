@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { BookOpen, Search, Plus, MoreVertical, Edit2, CheckCircle2, XCircle, Save } from 'lucide-react';
+import { BookOpen, Search, Plus, MoreVertical, Edit2, CheckCircle2, XCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import AddCourseModal from '../../components/admin/AddCourseModal';
 
 export default function ManageCourses() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<any | null>(null);
 
   const fetchCourses = async () => {
     setLoading(true);
@@ -42,21 +45,6 @@ export default function ManageCourses() {
     }
   };
 
-  const handleSaveSeats = async (id: string, totalSeats: string, filledSeats: string) => {
-
-    try {
-      await updateDoc(doc(db, 'courses', id), {
-        totalSeats: totalSeats ? parseInt(totalSeats, 10) : null,
-        filledSeats: filledSeats ? parseInt(filledSeats, 10) : 0
-      });
-      toast.success('Seat info updated');
-      fetchCourses();
-    } catch (error) {
-      console.error("Error updating seats:", error);
-      toast.error("Failed to update seats");
-    }
-  };
-
   const filteredData = courses.filter(item => 
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     item.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -77,7 +65,13 @@ export default function ManageCourses() {
           </div>
         </div>
         
-        <button className="bg-purple-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-sm flex items-center gap-2">
+        <button 
+          onClick={() => {
+            setEditingCourse(null);
+            setIsModalOpen(true);
+          }}
+          className="bg-purple-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-sm flex items-center gap-2"
+        >
           <Plus size={18} />
           Add New Course
         </button>
@@ -107,7 +101,6 @@ export default function ManageCourses() {
                 <th className="p-4 pl-6">Course Details</th>
                 <th className="p-4">Duration & Level</th>
                 <th className="p-4">Enrollments</th>
-                <th className="p-4">Seats</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right pr-6">Actions</th>
               </tr>
@@ -146,14 +139,6 @@ export default function ManageCourses() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <SeatEditor
-                        courseId={course.id}
-                        totalSeats={course.totalSeats}
-                        filledSeats={course.filledSeats}
-                        onSave={handleSaveSeats}
-                      />
-                    </td>
-                    <td className="p-4">
                       {course.isActive ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
                           <CheckCircle2 size={14} /> Active
@@ -176,7 +161,13 @@ export default function ManageCourses() {
                         >
                           {course.isActive ? 'Deactivate' : 'Publish'}
                         </button>
-                        <button className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                        <button 
+                          onClick={() => {
+                            setEditingCourse(course);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                        >
                           <Edit2 size={18} />
                         </button>
                         <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
@@ -191,51 +182,16 @@ export default function ManageCourses() {
           </table>
         </div>
       </div>
-    </div>
-  );
-}
 
-function SeatEditor({ courseId, totalSeats, filledSeats, onSave }: {
-  courseId: string;
-  totalSeats?: number;
-  filledSeats?: number;
-  onSave: (id: string, total: string, filled: string) => void;
-}) {
-  const [total, setTotal] = useState(totalSeats?.toString() || '');
-  const [filled, setFilled] = useState(filledSeats?.toString() || '');
-  const isDirty = total !== (totalSeats?.toString() || '') || filled !== (filledSeats?.toString() || '');
-
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className="flex flex-col gap-1">
-        <input
-          type="number"
-          min="0"
-          value={total}
-          onChange={(e) => setTotal(e.target.value)}
-          placeholder="Total"
-          className="w-16 px-2 py-1 text-xs font-medium border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500/30 focus:border-purple-500 bg-white"
-          title="Total Seats"
-        />
-        <input
-          type="number"
-          min="0"
-          value={filled}
-          onChange={(e) => setFilled(e.target.value)}
-          placeholder="Filled"
-          className="w-16 px-2 py-1 text-xs font-medium border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500/30 focus:border-purple-500 bg-white"
-          title="Filled Seats"
-        />
-      </div>
-      {isDirty && (
-        <button
-          onClick={() => onSave(courseId, total, filled)}
-          className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
-          title="Save seats"
-        >
-          <Save size={14} />
-        </button>
-      )}
+      <AddCourseModal 
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingCourse(null);
+        }}
+        onSuccess={fetchCourses}
+        initialData={editingCourse}
+      />
     </div>
   );
 }

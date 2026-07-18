@@ -22,6 +22,9 @@ export interface CourseData {
   isActive: boolean;
   totalSeats?: number;
   filledSeats?: number;
+  originalPrice?: number;
+  discountedPrice?: number;
+  isTopSelling?: boolean;
 }
 
 interface CourseCardProps {
@@ -80,24 +83,16 @@ export default function CourseCard({ course, index, onClick }: CourseCardProps) 
         />
 
         <div className="h-32 sm:h-48 overflow-hidden relative">
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-white/90 backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-primary shadow-sm uppercase tracking-wider">
-            {course.category}
-          </div>
-          {course.totalSeats != null && course.totalSeats > 0 && (() => {
-            const seatsLeft = Math.max(0, course.totalSeats - (course.filledSeats || 0));
-            return (
-              <div className={`absolute top-2 right-2 sm:top-4 sm:right-4 z-10 backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-1 ${
-                seatsLeft === 0
-                  ? 'bg-red-500/90 text-white'
-                  : seatsLeft <= 5
-                    ? 'bg-amber-500/90 text-white'
-                    : 'bg-emerald-500/90 text-white'
-              }`}>
-                <Users size={10} className="sm:w-3 sm:h-3" />
-                {seatsLeft === 0 ? 'Full' : `${seatsLeft} seats left`}
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex flex-col gap-2">
+            <div className="bg-white/90 backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-primary shadow-sm uppercase tracking-wider w-max">
+              {course.category}
+            </div>
+            {course.isTopSelling && (
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold shadow-sm flex items-center gap-1 w-max shadow-orange-500/30">
+                <span>🔥</span> Top Selling
               </div>
-            );
-          })()}
+            )}
+          </div>
           <img 
             src={course.thumbnailUrl} 
             alt={course.title}
@@ -114,6 +109,25 @@ export default function CourseCard({ course, index, onClick }: CourseCardProps) 
             <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm text-slate-600 font-medium">
               <Clock size={12} className="text-primary sm:w-4 sm:h-4" /> {course.duration}
             </div>
+            {(course.originalPrice || course.discountedPrice) && (
+              <div className="flex items-center gap-2 mt-1">
+                {course.discountedPrice && (
+                  <span className="text-sm sm:text-lg font-extrabold text-emerald-600">
+                    ₹{course.discountedPrice}/mo
+                  </span>
+                )}
+                {course.originalPrice && (
+                  <span className="text-[10px] sm:text-xs text-slate-400 font-medium line-through">
+                    ₹{course.originalPrice}/mo
+                  </span>
+                )}
+                {course.originalPrice && course.discountedPrice && (
+                  <span className="text-[10px] sm:text-xs font-bold text-red-500 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded-md ml-auto sm:ml-0">
+                    {Math.round(((course.originalPrice - course.discountedPrice) / course.originalPrice) * 100)}% OFF
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <button className="mt-3 sm:mt-6 w-full py-2 sm:py-3 rounded-lg sm:rounded-xl bg-slate-100 text-primary text-xs sm:text-base font-bold group-hover:bg-primary group-hover:text-white group-hover:shadow-glow-primary transition-all duration-300">

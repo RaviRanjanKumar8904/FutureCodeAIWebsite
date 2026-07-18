@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { Building2, Search, CheckCircle2, MoreVertical, Eye, Image as ImageIcon, Pencil } from 'lucide-react';
+import { Building2, Search, CheckCircle2, MoreVertical, Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import AddCollaboratorModal from '../../components/admin/AddCollaboratorModal';
 
@@ -12,6 +13,7 @@ export default function ManageCollaborators() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved'>('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const fetchCollaborators = async () => {
     setLoading(true);
@@ -44,6 +46,22 @@ export default function ManageCollaborators() {
     } catch (error) {
       console.error("Error updating:", error);
       toast.error("Failed to update status");
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to completely delete "${name}"? This action cannot be undone.`)) {
+      try {
+        // deleteDoc is not imported by default here, wait, I need to import deleteDoc!
+        // I will add it to the imports chunk if needed, but I should import it first.
+        const { deleteDoc } = await import('firebase/firestore');
+        await deleteDoc(doc(db, 'collaborators', id));
+        toast.success(`Collaborator deleted`);
+        fetchCollaborators();
+      } catch (error) {
+        console.error("Error deleting:", error);
+        toast.error("Failed to delete collaborator");
+      }
     }
   };
 
@@ -185,20 +203,22 @@ export default function ManageCollaborators() {
                             Revoke
                           </button>
                         )}
-                        <button className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                          <Eye size={18} />
-                        </button>
                         <button 
                           onClick={() => {
                             setEditingCollab(collab);
                             setIsAddModalOpen(true);
                           }}
                           className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Edit"
                         >
                           <Pencil size={18} />
                         </button>
-                        <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                          <MoreVertical size={18} />
+                        <button 
+                          onClick={() => handleDelete(collab.id, collab.name)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>

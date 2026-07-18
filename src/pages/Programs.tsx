@@ -63,6 +63,10 @@ export default function Programs() {
       const matchesCity = cityFilter === 'All' || course.institute.city === cityFilter;
       
       return matchesSearch && matchesCategory && matchesCity && course.isActive;
+    }).sort((a, b) => {
+      if (a.isTopSelling && !b.isTopSelling) return -1;
+      if (!a.isTopSelling && b.isTopSelling) return 1;
+      return 0; // maintain original order otherwise
     });
   }, [courses, searchQuery, categoryFilter, cityFilter]);
 
@@ -99,7 +103,7 @@ export default function Programs() {
                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
               </div>
             ) : filteredCourses.length > 0 ? (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {filteredCourses.map((course, index) => (
                   <CourseCard 
                     key={course.id} 
