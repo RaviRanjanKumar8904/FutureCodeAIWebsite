@@ -75,7 +75,6 @@ export default function Internships() {
       
       <main className="w-full relative z-10">
         <InternshipHero />
-        <InternshipBenefits />
         
         <section id="internship-domains" className="py-20 relative z-10">
           <div className="container mx-auto px-6 max-w-7xl">
@@ -86,7 +85,7 @@ export default function Internships() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {internships.map((internship, index) => (
                 <InternshipCard 
                   key={internship.id}
@@ -99,6 +98,7 @@ export default function Internships() {
           </div>
         </section>
 
+        <InternshipBenefits />
         <InternshipTimeline />
       </main>
 

@@ -96,12 +96,12 @@ export default function FeaturedCourses() {
           </div>
         </Reveal>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
           {displayData.map((course, index) => (
             <Reveal key={course.id} delay={index * 0.1} direction="up" className="h-full">
               <Link to={`/courses/${course.id}`} className="group h-full block">
                 <div className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-soft-lg transition-all duration-300 border border-gray-100 h-full flex flex-col hover:-translate-y-1">
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-32 sm:h-48 overflow-hidden">
                     {course.thumbnailUrl ? (
                       <img 
                         src={course.thumbnailUrl} 
@@ -112,23 +112,23 @@ export default function FeaturedCourses() {
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 group-hover:scale-105 transition-transform duration-500" />
                     )}
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-semibold text-primary shadow-sm">
+                    <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white/90 backdrop-blur px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-semibold text-primary shadow-sm">
                       {course.domain}
                     </div>
                   </div>
                   
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-lg font-bold text-text-heading mb-4 group-hover:text-primary transition-colors line-clamp-2">
+                  <div className="p-3 sm:p-6 flex flex-col flex-grow">
+                    <h3 className="text-sm sm:text-lg font-bold text-text-heading mb-2 sm:mb-4 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                       {course.title}
                     </h3>
                     
-                    <div className="mt-auto flex items-center justify-between text-sm text-text-body">
-                      <div className="flex items-center gap-1.5">
-                        <Clock size={16} className="text-gray-400" />
+                    <div className="mt-auto flex items-center justify-between text-[10px] sm:text-sm text-text-body flex-wrap gap-2">
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <Clock size={12} className="text-gray-400 sm:w-4 sm:h-4" />
                         {course.duration}
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <Users size={16} className="text-gray-400" />
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <Users size={12} className="text-gray-400 sm:w-4 sm:h-4" />
                         {course.studentsCount}+
                       </div>
                     </div>

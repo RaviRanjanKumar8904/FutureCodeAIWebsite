@@ -60,7 +60,7 @@ export default function InternshipCard({ internship, index, onClick }: Internshi
           transformPerspective: 1000
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20, mass: 0.5 }}
-        className="glass rounded-3xl p-8 cursor-pointer h-full flex flex-col group border border-white/60 hover:shadow-premium-card relative overflow-hidden"
+        className="glass rounded-2xl sm:rounded-3xl p-4 sm:p-8 cursor-pointer h-full flex flex-col group border border-white/60 hover:shadow-premium-card relative overflow-hidden"
       >
         {/* Dynamic Glare Overlay */}
         <motion.div 
@@ -71,23 +71,23 @@ export default function InternshipCard({ internship, index, onClick }: Internshi
         />
 
         <div className="relative z-10 flex flex-col h-full">
-          <div className="flex items-start justify-between mb-6">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Code2 size={24} />
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Code2 size={20} className="sm:w-6 sm:h-6" />
             </div>
-            <div className="bg-slate-100 px-3 py-1 rounded-full text-xs font-bold text-slate-600 uppercase tracking-wider">
+            <div className="bg-slate-100 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider self-start">
               {internship.domain}
             </div>
           </div>
 
-          <h3 className="text-2xl font-extrabold text-text-heading mb-3">{internship.title}</h3>
-          <p className="text-slate-500 text-sm leading-relaxed mb-6 flex-grow">{internship.description}</p>
+          <h3 className="text-sm sm:text-2xl font-extrabold text-text-heading mb-2 sm:mb-3 leading-tight">{internship.title}</h3>
+          <p className="text-slate-500 text-xs sm:text-sm leading-relaxed mb-4 sm:mb-6 flex-grow line-clamp-3 sm:line-clamp-none">{internship.description}</p>
           
-          <div className="flex items-center gap-2 text-sm text-slate-600 font-medium py-4 border-t border-gray-100">
-            <Clock size={16} className="text-primary" /> {internship.duration}
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-slate-600 font-medium py-3 sm:py-4 border-t border-gray-100">
+            <Clock size={14} className="text-primary sm:w-4 sm:h-4" /> {internship.duration}
           </div>
 
-          <button className="mt-2 w-full py-3 rounded-xl bg-slate-100 text-primary font-bold group-hover:bg-primary group-hover:text-white group-hover:shadow-glow-primary transition-all duration-300">
+          <button className="mt-1 sm:mt-2 w-full py-2 sm:py-3 rounded-lg sm:rounded-xl bg-slate-100 text-primary text-xs sm:text-base font-bold group-hover:bg-primary group-hover:text-white group-hover:shadow-glow-primary transition-all duration-300">
             View Details
           </button>
         </div>

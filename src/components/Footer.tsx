@@ -16,9 +16,9 @@ export default function Footer() {
   return (
     <footer className="bg-white pt-20 pb-10 border-t-2 border-gray-100 relative z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.02)]">
       <div className="container mx-auto px-6 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mb-12 md:mb-16">
           {/* Brand */}
-          <div className="space-y-6">
+          <div className="col-span-2 lg:col-span-1 space-y-4 md:space-y-6">
             <Link to="/" className="flex items-center gap-3">
               <img src="/logo.jpg" alt="FutureCodeAI Logo" className="h-10 w-auto rounded-lg" />
               <span className="font-heading font-extrabold text-xl tracking-tight">
@@ -38,7 +38,7 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div className="col-span-1">
             <h4 className="font-heading font-bold text-text-heading mb-6">Programs</h4>
             <ul className="space-y-4">
               <li><Link to="/programs/fullstack" className="text-sm text-text-body hover:text-primary transition-colors">Full-Stack Development</Link></li>
@@ -49,20 +49,18 @@ export default function Footer() {
           </div>
 
           {/* Company */}
-          <div>
-            <h4 className="font-heading font-bold text-text-heading mb-6">Company</h4>
-            <ul className="space-y-4">
+          <div className="col-span-1">
+            <h4 className="font-heading font-bold text-text-heading mb-4 md:mb-6">Company</h4>
+            <ul className="space-y-3 md:space-y-4">
               <li><Link to="/about" className="text-sm text-text-body hover:text-primary transition-colors">About Us</Link></li>
               <li><Link to="/verify" className="text-sm font-semibold text-primary hover:text-indigo-500 transition-colors flex items-center gap-1">Verify Certificate</Link></li>
-              <li><Link to="/careers" className="text-sm text-text-body hover:text-primary transition-colors">Careers</Link></li>
-              <li><Link to="/institutes" className="text-sm text-text-body hover:text-primary transition-colors">Partner with us</Link></li>
               <li><Link to="/contact" className="text-sm text-text-body hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>
 
           {/* Contact */}
-          <div>
-            <h4 className="font-heading font-bold text-text-heading mb-6">Contact Us</h4>
+          <div className="col-span-2 lg:col-span-1 mt-4 lg:mt-0">
+            <h4 className="font-heading font-bold text-text-heading mb-4 md:mb-6">Contact Us</h4>
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-text-body">
                 <MapPin size={18} className="text-primary mt-0.5 shrink-0" />

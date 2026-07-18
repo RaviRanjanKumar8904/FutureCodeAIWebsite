@@ -17,7 +17,11 @@ import ManageCollaborators from './pages/admin/ManageCollaborators';
 import ManageAdmins from './pages/admin/ManageAdmins';
 import ManageEnquiries from './pages/admin/ManageEnquiries';
 import ManageCourses from './pages/admin/ManageCourses';
-import PlaceholderModule from './pages/admin/PlaceholderModule';
+import ActivityLogs from './pages/admin/ActivityLogs';
+import ManageGallery from './pages/admin/ManageGallery';
+import ManageCertificates from './pages/admin/ManageCertificates';
+import ManageStudents from './pages/admin/ManageStudents';
+import ManageInternships from './pages/admin/ManageInternships';
 import NotFound from './pages/NotFound';
 import StudentDashboard from './pages/StudentDashboard';
 import InstituteDashboard from './pages/InstituteDashboard';
@@ -71,13 +75,12 @@ function App() {
               <Route path="admins" element={<ManageAdmins />} />
               <Route path="enquiries" element={<ManageEnquiries />} />
               <Route path="courses" element={<ManageCourses />} />
-              
-              {/* Placeholders for unbuilt modules */}
-              <Route path="internships" element={<PlaceholderModule title="Internships" />} />
-              <Route path="students" element={<PlaceholderModule title="Students Database" />} />
-              <Route path="certificates" element={<PlaceholderModule title="Certificate Generator" />} />
-              <Route path="gallery" element={<PlaceholderModule title="Gallery CMS" />} />
-              <Route path="logs" element={<PlaceholderModule title="Activity Logs" />} />
+              {/* Admin Modules */}
+              <Route path="internships" element={<ManageInternships />} />
+              <Route path="students" element={<ManageStudents />} />
+              <Route path="certificates" element={<ManageCertificates />} />
+              <Route path="gallery" element={<ManageGallery />} />
+              <Route path="logs" element={<ActivityLogs />} />
             </Route>
             
             {/* 404 Catch-All Route */}

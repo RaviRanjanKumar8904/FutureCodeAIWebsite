@@ -77,8 +77,8 @@ export default function CourseCard({ course, index, onClick }: CourseCardProps) 
           }}
         />
 
-        <div className="h-48 overflow-hidden relative">
-          <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-primary shadow-sm uppercase tracking-wider">
+        <div className="h-32 sm:h-48 overflow-hidden relative">
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 bg-white/90 backdrop-blur-md px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold text-primary shadow-sm uppercase tracking-wider">
             {course.category}
           </div>
           <img 
@@ -89,17 +89,17 @@ export default function CourseCard({ course, index, onClick }: CourseCardProps) 
           />
         </div>
 
-        <div className="p-6 flex flex-col flex-grow relative z-10 bg-white/40">
-          <h3 className="text-xl font-extrabold text-text-heading mb-2 line-clamp-2">{course.title}</h3>
-          <p className="text-slate-500 text-sm mb-4 line-clamp-2">{course.description}</p>
+        <div className="p-3 sm:p-6 flex flex-col flex-grow relative z-10 bg-white/40">
+          <h3 className="text-sm sm:text-xl font-extrabold text-text-heading mb-1 sm:mb-2 line-clamp-2 leading-tight">{course.title}</h3>
+          <p className="text-slate-500 text-[10px] sm:text-sm mb-2 sm:mb-4 line-clamp-2 leading-relaxed">{course.description}</p>
           
-          <div className="space-y-2 mt-auto pt-4 border-t border-gray-200">
-            <div className="flex items-center gap-2 text-sm text-slate-600 font-medium">
-              <Clock size={16} className="text-primary" /> {course.duration}
+          <div className="space-y-1 sm:space-y-2 mt-auto pt-2 sm:pt-4 border-t border-gray-200">
+            <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm text-slate-600 font-medium">
+              <Clock size={12} className="text-primary sm:w-4 sm:h-4" /> {course.duration}
             </div>
           </div>
 
-          <button className="mt-6 w-full py-3 rounded-xl bg-slate-100 text-primary font-bold group-hover:bg-primary group-hover:text-white group-hover:shadow-glow-primary transition-all duration-300">
+          <button className="mt-3 sm:mt-6 w-full py-2 sm:py-3 rounded-lg sm:rounded-xl bg-slate-100 text-primary text-xs sm:text-base font-bold group-hover:bg-primary group-hover:text-white group-hover:shadow-glow-primary transition-all duration-300">
             View Details
           </button>
         </div>

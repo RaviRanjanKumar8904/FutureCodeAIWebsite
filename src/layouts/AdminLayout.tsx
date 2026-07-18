@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -12,7 +12,9 @@ import {
   ShieldAlert,
   LogOut,
   Building2,
-  ListOrdered
+  ListOrdered,
+  Menu,
+  X
 } from 'lucide-react';
 
 const ADMIN_NAV = [
@@ -33,6 +35,12 @@ export default function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     // If not logged in, or not an admin (and not the hardcoded super admin), kick them out
@@ -57,10 +65,24 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      {/* Mobile Sidebar Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0 z-50">
-        <div className="h-16 flex items-center px-6 bg-slate-950/50 border-b border-slate-800">
+      <aside className={`w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="h-16 flex items-center justify-between px-6 bg-slate-950/50 border-b border-slate-800">
           <span className="text-white font-extrabold text-xl tracking-tight">Admin Panel</span>
+          <button 
+            className="md:hidden text-slate-400 hover:text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
         
         <nav className="flex-1 overflow-y-auto py-4">
@@ -99,14 +121,22 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content area */}
-      <div className="flex-1 ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 md:ml-64 flex flex-col min-h-screen w-full">
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-40">
-          <h2 className="text-xl font-bold text-slate-800 capitalize">
-            {location.pathname.split('/').pop() || 'Dashboard'}
-          </h2>
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-600">Logged in as <strong className="text-slate-900">{user.email}</strong></span>
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <button 
+              className="md:hidden text-slate-600 hover:text-indigo-600 p-1"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-800 capitalize truncate max-w-[150px] sm:max-w-none">
+              {location.pathname.split('/').pop() || 'Dashboard'}
+            </h2>
+          </div>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <span className="text-xs sm:text-sm font-medium text-slate-600 hidden sm:inline-block">Logged in as <strong className="text-slate-900">{user.email}</strong></span>
             {user.photoURL ? (
               <img src={user.photoURL} alt="Admin" className="w-8 h-8 rounded-full border border-gray-200" />
             ) : (
@@ -118,7 +148,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 w-full max-w-[100vw] overflow-x-hidden">
           <Outlet />
         </main>
       </div>

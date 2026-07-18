@@ -147,7 +147,7 @@ export default function Programs() {
         <section className="py-20 relative z-10 min-h-[50vh]">
           <div className="container mx-auto px-6 max-w-7xl">
             {filteredCourses.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                 {filteredCourses.map((course, index) => (
                   <CourseCard 
                     key={course.id} 

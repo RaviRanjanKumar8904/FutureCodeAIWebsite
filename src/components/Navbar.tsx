@@ -29,12 +29,11 @@ export default function Navbar() {
   }
 
   const navLinks = [
+    { name: 'Home', path: '/' },
     { name: 'Programs', path: '/programs' },
     { name: 'Internships', path: '/internships' },
     { name: 'Collaborators', path: '/collaborators' },
-    { name: 'Gallery', path: '/gallery' },
-    { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' }
+    { name: 'Gallery', path: '/gallery' }
   ];
 
   return (
@@ -45,8 +44,10 @@ export default function Navbar() {
     >
       <div className="container mx-auto px-6 max-w-7xl">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="FutureCodeAI Logo" className="h-10 md:h-12 w-auto transition-transform hover:scale-105 rounded-lg" />
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="bg-white p-1.5 rounded-xl shadow-sm border border-gray-100 group-hover:shadow-md transition-all">
+              <img src="/logo.jpg" alt="FutureCodeAI Logo" className="h-8 md:h-9 w-auto mix-blend-multiply" />
+            </div>
             <span className="font-heading font-extrabold text-xl md:text-2xl tracking-tight">
               <span className="text-[#152a4f]">FutureCode</span>
               <span className="text-[#24a4b5]">AI</span>
@@ -56,12 +57,14 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => {
-              const isActive = location.pathname.startsWith(link.path);
+              const isActive = link.path === '/' 
+                ? location.pathname === '/' 
+                : location.pathname.startsWith(link.path);
               return (
                 <Link 
                   key={link.name} 
                   to={link.path}
-                  className={`text-sm transition-colors relative py-1 ${isActive ? 'text-primary font-bold' : 'font-medium text-text-body hover:text-primary'}`}
+                  className={`text-sm transition-all duration-300 relative py-1 ${isActive ? 'text-primary font-bold' : 'font-medium text-slate-600 hover:text-primary'}`}
                 >
                   {link.name}
                   {isActive && (
@@ -77,17 +80,17 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
-            <Link to="/verify" className="flex items-center gap-1.5 text-sm font-semibold text-primary bg-primary/5 hover:bg-primary/10 px-4 py-2 rounded-full transition-colors">
-              <ShieldCheck size={16} />
+            <Link to="/verify" className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
+              <ShieldCheck size={16} className="text-primary" />
               Verify Certificate
             </Link>
-            <div className="w-px h-5 bg-gray-200 mx-1"></div>
+            <div className="w-px h-5 bg-gray-200/80 mx-2"></div>
             
             {user ? (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <Link 
                   to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : "/dashboard/student"}
-                  className="hidden md:flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-xl font-bold hover:bg-primary/20 transition-colors"
+                  className="hidden md:flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-full font-bold hover:bg-indigo-600 transition-all shadow-glow-primary hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:-translate-y-0.5 active:scale-95"
                 >
                   <LayoutDashboard size={18} />
                   Dashboard
@@ -95,10 +98,10 @@ export default function Navbar() {
                 <div className="relative">
                   <button 
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 hover:bg-slate-50 p-1 pr-3 rounded-full border border-gray-100 transition-colors"
+                  className="flex items-center gap-2 bg-white/60 hover:bg-white backdrop-blur-sm p-1 pr-4 rounded-full border border-gray-200/50 shadow-sm transition-all hover:shadow-md"
                 >
-                  <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full bg-slate-200" />
-                  <span className="text-sm font-semibold text-text-heading">{user.displayName.split(' ')[0]}</span>
+                  <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full bg-slate-100 object-cover border border-white" />
+                  <span className="text-sm font-bold text-slate-700">{user.displayName.split(' ')[0]}</span>
                 </button>
                 
                 <AnimatePresence>
@@ -170,7 +173,9 @@ export default function Navbar() {
             className="absolute top-full left-0 w-full bg-white shadow-soft-lg border-t border-gray-100 py-4 px-6 md:hidden flex flex-col gap-4"
           >
             {navLinks.map((link) => {
-              const isActive = location.pathname.startsWith(link.path);
+              const isActive = link.path === '/' 
+                ? location.pathname === '/' 
+                : location.pathname.startsWith(link.path);
               return (
                 <Link 
                   key={link.name} 
