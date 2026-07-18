@@ -64,15 +64,15 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-text-body">
                 <MapPin size={18} className="text-primary mt-0.5 shrink-0" />
-                <span>123 Innovation Drive, Tech Hub, Bangalore 560001</span>
+                <span>Vikash Nagar, Polytechnic Chowk, Purnea, 854301</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-text-body">
                 <Phone size={18} className="text-primary shrink-0" />
-                <span>+91 98765 43210</span>
+                <span>+91 8709078136</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-text-body">
                 <Mail size={18} className="text-primary shrink-0" />
-                <span>hello@futurecodeai.com</span>
+                <span>raviranjan8904@gmail.com</span>
               </li>
             </ul>
           </div>

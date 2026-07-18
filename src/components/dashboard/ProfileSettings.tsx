@@ -170,7 +170,7 @@ export default function ProfileSettings() {
                 <input 
                   {...register("phone")}
                   className={`w-full bg-white border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 transition-all text-text-heading ${errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-primary'}`}
-                  placeholder="+91 98765 43210"
+                  placeholder="+91 8709078136"
                 />
                 {errors.phone && <p className="text-red-500 text-xs mt-1 ml-1">{errors.phone.message}</p>}
               </div>
