@@ -25,18 +25,8 @@ export default function Login() {
         return;
       }
 
-      switch (user.role) {
-        case 'admin':
-          navigate('/admin/dashboard', { replace: true });
-          break;
-        case 'institute':
-          navigate('/dashboard/institute', { replace: true });
-          break;
-        case 'student':
-        default:
-          navigate('/dashboard/student', { replace: true });
-          break;
-      }
+      // Redirect all users to the Home Page
+      navigate('/', { replace: true });
     }
   }, [user, navigate, location.state]);
 
