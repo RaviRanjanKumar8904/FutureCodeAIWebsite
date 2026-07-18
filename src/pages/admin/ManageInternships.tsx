@@ -3,8 +3,11 @@ import { db } from '../../firebase/config';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { Briefcase, Search, Plus, MoreVertical, Edit2, CheckCircle2, XCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import AddInternshipModal from '../../components/admin/AddInternshipModal';
 
 export default function ManageInternships() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingInternship, setEditingInternship] = useState<any | null>(null);
   const [internships, setInternships] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,7 +64,13 @@ export default function ManageInternships() {
           </div>
         </div>
         
-        <button className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-teal-700 transition-colors shadow-sm flex items-center gap-2">
+        <button 
+          onClick={() => {
+            setEditingInternship(null);
+            setIsModalOpen(true);
+          }}
+          className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-teal-700 transition-colors shadow-sm flex items-center gap-2"
+        >
           <Plus size={18} />
           Add Internship
         </button>
@@ -151,7 +160,13 @@ export default function ManageInternships() {
                         >
                           {internship.isActive ? 'Deactivate' : 'Publish'}
                         </button>
-                        <button className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors">
+                        <button 
+                          onClick={() => {
+                            setEditingInternship(internship);
+                            setIsModalOpen(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                        >
                           <Edit2 size={18} />
                         </button>
                         <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
@@ -166,6 +181,16 @@ export default function ManageInternships() {
           </table>
         </div>
       </div>
+
+      <AddInternshipModal 
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingInternship(null);
+        }}
+        onSuccess={fetchInternships}
+        initialData={editingInternship}
+      />
     </div>
   );
 }
