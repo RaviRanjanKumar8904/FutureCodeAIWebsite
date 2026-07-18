@@ -32,35 +32,6 @@ export default function ManageEnquiries() {
         return timeB - timeA;
       });
 
-      if (combined.length === 0) {
-        // Mock data if empty
-        combined = [
-          {
-            id: 'm1',
-            collection: 'partnership',
-            name: 'Rahul Kumar',
-            instituteName: 'TechVision Academy',
-            type: 'Coaching Institute',
-            city: 'Patna',
-            phone: '9876543210',
-            email: 'rahul@techvision.com',
-            status: 'new',
-            message: 'We are interested in partnering to offer your AI courses.',
-            createdAt: { toDate: () => new Date() }
-          },
-          {
-            id: 'm2',
-            collection: 'contact',
-            name: 'Amit Singh',
-            phone: '9998887776',
-            email: 'amit.singh@gmail.com',
-            subject: 'Course Inquiry',
-            status: 'read',
-            message: 'What is the syllabus for the MERN stack course?',
-            createdAt: { toDate: () => new Date(Date.now() - 86400000) }
-          }
-        ];
-      }
       
       setEnquiries(combined);
     } catch (error) {
@@ -75,10 +46,7 @@ export default function ManageEnquiries() {
   }, []);
 
   const handleUpdateStatus = async (id: string, collectionName: string, newStatus: string) => {
-    if (id.startsWith('m')) {
-      toast.error("Cannot edit mock data.");
-      return;
-    }
+
     try {
       const col = collectionName === 'partnership' ? 'partnershipEnquiries' : 'contactMessages';
       await updateDoc(doc(db, col, id), {

@@ -40,47 +40,7 @@ interface Collaborator {
 
 const CATEGORIES = ["All", "Coaching Institutes", "Colleges"];
 
-const PLACEHOLDERS: Collaborator[] = [
-  {
-    id: 'c1',
-    name: 'TechVision Academy',
-    type: 'Coaching Institute',
-    city: 'Patna',
-    logoUrl: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&h=100&fit=crop',
-    description: 'A premier coaching institute dedicated to transforming tech education in Bihar.',
-    address: 'Boring Road, Patna, Bihar',
-    contactPerson: 'Amit Kumar',
-    galleryUrls: ['https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=500&h=300&fit=crop'],
-    isApproved: true,
-    isActive: true
-  },
-  {
-    id: 'c2',
-    name: 'Purnea College of Engineering',
-    type: 'College',
-    city: 'Purnea',
-    logoUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop',
-    description: 'Empowering future engineers with modern skills and industry connections.',
-    address: 'Ramnagar, Purnea, Bihar',
-    contactPerson: 'Dr. S. K. Singh',
-    galleryUrls: ['https://images.unsplash.com/photo-1562774053-701939374585?w=500&h=300&fit=crop'],
-    isApproved: true,
-    isActive: true
-  },
-  {
-    id: 'c3',
-    name: 'CodeCraft Institute',
-    type: 'Coaching Institute',
-    city: 'Katihar',
-    logoUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=100&h=100&fit=crop',
-    description: 'Leading programming bootcamp focusing on practical, hands-on learning.',
-    address: 'Mirchaibari, Katihar, Bihar',
-    contactPerson: 'Neha Sharma',
-    galleryUrls: ['https://images.unsplash.com/photo-1531482615713-2afd69097998?w=500&h=300&fit=crop'],
-    isApproved: true,
-    isActive: true
-  }
-];
+
 
 const partnershipSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -119,7 +79,7 @@ export default function Collaborators() {
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
-          setCollaborators(PLACEHOLDERS);
+          setCollaborators([]);
         } else {
           const fetchedData = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -129,7 +89,7 @@ export default function Collaborators() {
         }
       } catch (error) {
         console.error("Error fetching collaborators:", error);
-        setCollaborators(PLACEHOLDERS);
+        setCollaborators([]);
       } finally {
         setLoading(false);
       }

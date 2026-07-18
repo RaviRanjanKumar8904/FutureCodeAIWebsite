@@ -15,14 +15,7 @@ interface GalleryImage {
 
 const CATEGORIES = ["All", "Workshops", "Batches", "Events", "Internship Meetups"];
 
-const PLACEHOLDERS: GalleryImage[] = [
-  { id: 'p1', imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1600&auto=format&fit=crop', caption: 'Full Stack Batch 2024', category: 'Batches' },
-  { id: 'p2', imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1600&auto=format&fit=crop', caption: 'AI Workshop at NIT Patna', category: 'Workshops' },
-  { id: 'p3', imageUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=1600&auto=format&fit=crop', caption: 'Tech Meetup 2023', category: 'Events' },
-  { id: 'p4', imageUrl: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=1600&auto=format&fit=crop', caption: 'Internship Orientation', category: 'Internship Meetups' },
-  { id: 'p5', imageUrl: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=1600&auto=format&fit=crop', caption: 'React Advanced Masterclass', category: 'Workshops' },
-  { id: 'p6', imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1600&auto=format&fit=crop', caption: 'Graduation Day', category: 'Events' },
-];
+
 
 export default function Gallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -39,7 +32,7 @@ export default function Gallery() {
         const snapshot = await getDocs(q);
         
         if (snapshot.empty) {
-          setImages(PLACEHOLDERS);
+          setImages([]);
         } else {
           const fetchedImages = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -49,7 +42,7 @@ export default function Gallery() {
         }
       } catch (error) {
         console.error("Error fetching gallery images:", error);
-        setImages(PLACEHOLDERS); // Fallback on error
+        setImages([]); // Fallback on error
       } finally {
         setLoading(false);
       }

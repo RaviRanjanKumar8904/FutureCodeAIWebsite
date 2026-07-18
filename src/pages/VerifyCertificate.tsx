@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import BackgroundBlobs from '../components/BackgroundBlobs';
 import VerifyHero from '../components/verify/VerifyHero';
@@ -21,15 +21,7 @@ match /certificates/{certId} {
 }
 */
 
-const MOCK_CERTIFICATE = {
-  certificateId: "FC-2026-DEMO",
-  studentName: "Ramesh Kumar",
-  courseName: "Advanced Full-Stack Development",
-  instituteName: "FutureCode Academy, Patna",
-  issueDate: "July 15, 2026",
-  previewUrl: "https://images.unsplash.com/photo-1589330694653-06defb5e1220?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80", // Placeholder certificate image
-  downloadUrl: "#"
-};
+
 
 export default function VerifyCertificate() {
   const [searchParams] = useSearchParams();
@@ -53,7 +45,7 @@ export default function VerifyCertificate() {
     // Filter attempts within the last 1 minute (60000ms)
     attempts = attempts.filter((timestamp: number) => now - timestamp < 60000);
     
-    if (attempts.length >= 10) {
+    if (attempts.length >= 5) {
       return false; // Rate limited
     }
     
@@ -74,19 +66,27 @@ export default function VerifyCertificate() {
     setStatus('loading');
     setData(null);
 
-    // Mock Fallback for Development (Offline Mode)
-    if (id.trim().toUpperCase() === "FC-2026-DEMO") {
-      setTimeout(() => {
-        setData(MOCK_CERTIFICATE);
-        setStatus('success');
-      }, 1500); // Simulate network delay
-      return;
-    }
+
 
     try {
+      // Artificial delay to mitigate rapid enumeration
+      await new Promise(resolve => setTimeout(resolve, 800));
+
       const docRef = doc(db, 'certificates', id.trim());
       const docSnap = await getDoc(docRef);
       
+      // Fire-and-forget log of the verification attempt
+      try {
+        await addDoc(collection(db, 'verificationLogs'), {
+          certificateId: id.trim(),
+          timestamp: serverTimestamp(),
+          found: docSnap.exists(),
+          userAgent: navigator.userAgent
+        });
+      } catch (logErr) {
+        console.warn("Failed to log verification attempt", logErr);
+      }
+
       if (docSnap.exists()) {
         const docData = docSnap.data();
         setData(docData);

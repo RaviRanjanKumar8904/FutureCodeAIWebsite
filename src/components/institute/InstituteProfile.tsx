@@ -24,9 +24,9 @@ export default function InstituteProfile() {
     resolver: zodResolver(instituteProfileSchema),
     defaultValues: {
       displayName: user?.displayName || '',
-      contactPerson: 'Dr. Ramesh Kumar', // Mock default
+      contactPerson: '',
       phone: user?.phone || '',
-      description: 'National Institute of Technology Patna is the 18th National Institute of Technology created by the Ministry of H.R.D. Government of India.',
+      description: '',
     }
   });
 

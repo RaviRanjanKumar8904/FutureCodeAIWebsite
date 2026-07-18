@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Briefcase, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { db } from '../../firebase/config';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 interface InternshipApplication {
   id: string;
@@ -11,10 +14,35 @@ interface InternshipApplication {
   appliedDate: string;
 }
 
-const mockInternships: InternshipApplication[] = [];
-
 export default function MyInternships() {
-  const [internships] = useState<InternshipApplication[]>(mockInternships);
+  const { user } = useAuth();
+  const [internships, setInternships] = useState<InternshipApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInternships = async () => {
+      if (!user) return;
+      try {
+        const q = query(collection(db, 'internshipApplications'), where('studentId', '==', user.uid));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as InternshipApplication[];
+        setInternships(data);
+      } catch (error) {
+        console.error("Error fetching internships:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInternships();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (internships.length === 0) {
     return (

@@ -14,36 +14,6 @@ export default function ActivityLogs() {
       const q = query(collection(db, 'adminLogs'), orderBy('timestamp', 'desc'), limit(100));
       const snapshot = await getDocs(q);
       let data: any[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      if (data.length === 0) {
-        // Mock data to show layout when empty
-        data = [
-          {
-            id: 'mock1',
-            action: 'UPDATED',
-            target: 'Course: Advanced React Patterns',
-            adminEmail: 'admin@futurecodeai.com',
-            timestamp: { toDate: () => new Date() },
-            details: 'Updated course syllabus'
-          },
-          {
-            id: 'mock2',
-            action: 'CREATED',
-            target: 'Admin: john.doe@example.com',
-            adminEmail: 'superadmin@futurecodeai.com',
-            timestamp: { toDate: () => new Date(Date.now() - 3600000) },
-            details: 'Added new admin'
-          },
-          {
-            id: 'mock3',
-            action: 'DELETED',
-            target: 'Testimonial #342',
-            adminEmail: 'admin@futurecodeai.com',
-            timestamp: { toDate: () => new Date(Date.now() - 86400000) }
-          }
-        ];
-      }
-      
       setLogs(data);
     } catch (error) {
       console.error("Error fetching logs:", error);

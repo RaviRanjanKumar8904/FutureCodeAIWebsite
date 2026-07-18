@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MessageSquare, ArrowRight, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { db } from '../../firebase/config';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 interface Enquiry {
   id: string;
@@ -11,10 +14,48 @@ interface Enquiry {
   createdAt: string;
 }
 
-const mockEnquiries: Enquiry[] = [];
-
 export default function MyEnquiries() {
-  const [enquiries] = useState<Enquiry[]>(mockEnquiries);
+  const { user } = useAuth();
+  const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEnquiries = async () => {
+      if (!user || !user.email) return;
+      try {
+        const q = query(collection(db, 'enquiries'), where('email', '==', user.email));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => {
+          const docData = doc.data();
+          let createdAtStr = 'Unknown';
+          if (docData.createdAt && docData.createdAt.toDate) {
+            createdAtStr = docData.createdAt.toDate().toLocaleDateString();
+          }
+          return {
+            id: doc.id,
+            targetTitle: docData.targetTitle,
+            type: docData.type,
+            status: docData.status,
+            createdAt: createdAtStr
+          };
+        }) as Enquiry[];
+        setEnquiries(data);
+      } catch (error) {
+        console.error("Error fetching enquiries:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEnquiries();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (enquiries.length === 0) {
     return (

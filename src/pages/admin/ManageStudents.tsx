@@ -36,25 +36,6 @@ export default function ManageStudents() {
         return timeB - timeA;
       });
       
-      if (data.length === 0) {
-        // Mock data to show layout if database is empty
-        data = [
-          {
-            id: 'mock-s1',
-            email: 'rahul.dev@example.com',
-            displayName: 'Rahul Sharma',
-            role: 'student',
-            createdAt: { toDate: () => new Date(Date.now() - 86400000 * 2) }
-          },
-          {
-            id: 'mock-s2',
-            email: 'priya.singh@example.com',
-            displayName: 'Priya Singh',
-            role: 'student',
-            createdAt: { toDate: () => new Date(Date.now() - 86400000 * 5) }
-          }
-        ];
-      }
 
       setStudents(data);
     } catch (error) {
@@ -70,10 +51,7 @@ export default function ManageStudents() {
   }, []);
 
   const handleDelete = async (id: string, name: string) => {
-    if (id.startsWith('mock')) {
-      toast.error("Cannot delete mock data.");
-      return;
-    }
+
 
     if (!window.confirm(`WARNING: Are you sure you want to delete the student profile for ${name}? This will remove their Firestore document permanently. (Note: Auth deletion requires Cloud Functions).`)) {
       return;

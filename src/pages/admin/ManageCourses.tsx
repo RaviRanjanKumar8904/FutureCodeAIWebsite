@@ -16,39 +16,7 @@ export default function ManageCourses() {
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-      if (data.length === 0) {
-        setCourses([
-          {
-            id: 'm1',
-            title: 'Full Stack Web Development',
-            category: 'Web Development',
-            duration: '6 Months',
-            level: 'Beginner to Advanced',
-            isActive: true,
-            studentsCount: 145
-          },
-          {
-            id: 'm2',
-            title: 'Data Science & Machine Learning',
-            category: 'AI & Data Science',
-            duration: '8 Months',
-            level: 'Intermediate',
-            isActive: true,
-            studentsCount: 89
-          },
-          {
-            id: 'm3',
-            title: 'Blockchain Fundamentals',
-            category: 'Web3',
-            duration: '3 Months',
-            level: 'Beginner',
-            isActive: false,
-            studentsCount: 0
-          }
-        ]);
-      } else {
-        setCourses(data);
-      }
+      setCourses(data);
     } catch (error) {
       console.error("Error fetching courses:", error);
     } finally {
@@ -61,10 +29,7 @@ export default function ManageCourses() {
   }, []);
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    if (id.startsWith('m')) {
-      toast.error("Cannot edit mock data.");
-      return;
-    }
+
     try {
       await updateDoc(doc(db, 'courses', id), {
         isActive: !currentStatus
@@ -78,10 +43,7 @@ export default function ManageCourses() {
   };
 
   const handleSaveSeats = async (id: string, totalSeats: string, filledSeats: string) => {
-    if (id.startsWith('m')) {
-      toast.error("Cannot edit mock data.");
-      return;
-    }
+
     try {
       await updateDoc(doc(db, 'courses', id), {
         totalSeats: totalSeats ? parseInt(totalSeats, 10) : null,

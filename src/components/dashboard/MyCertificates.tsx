@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Award, Download, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { db } from '../../firebase/config';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 interface Certificate {
   id: string;
@@ -11,10 +14,35 @@ interface Certificate {
   image: string;
 }
 
-const mockCertificates: Certificate[] = [];
-
 export default function MyCertificates() {
-  const [certificates] = useState<Certificate[]>(mockCertificates);
+  const { user } = useAuth();
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCertificates = async () => {
+      if (!user || !user.email) return;
+      try {
+        const q = query(collection(db, 'certificates'), where('studentEmail', '==', user.email));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Certificate[];
+        setCertificates(data);
+      } catch (error) {
+        console.error("Error fetching certificates:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCertificates();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (certificates.length === 0) {
     return (

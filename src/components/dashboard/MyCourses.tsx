@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, MapPin, Clock, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { db } from '../../firebase/config';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 interface Enrollment {
   id: string;
@@ -13,21 +16,35 @@ interface Enrollment {
   image: string;
 }
 
-// Fallback empty state for dev, change to populated array to see items
-const mockEnrollments: Enrollment[] = [
-  // {
-  //   id: 'e1',
-  //   courseName: 'Full-Stack Web Development',
-  //   institute: 'NIT Patna',
-  //   city: 'Patna',
-  //   batchTiming: 'Mon-Wed-Fri, 5 PM - 7 PM',
-  //   status: 'Ongoing',
-  //   image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&q=80'
-  // }
-];
-
 export default function MyCourses() {
-  const [enrollments] = useState<Enrollment[]>(mockEnrollments);
+  const { user } = useAuth();
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      if (!user) return;
+      try {
+        const q = query(collection(db, 'enrollments'), where('studentId', '==', user.uid));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Enrollment[];
+        setEnrollments(data);
+      } catch (error) {
+        console.error("Error fetching enrollments:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEnrollments();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (enrollments.length === 0) {
     return (

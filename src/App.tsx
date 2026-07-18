@@ -32,6 +32,8 @@ const InstituteDashboard = lazy(() => import('./pages/InstituteDashboard'));
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import WhatsAppButton from './components/WhatsAppButton';
+import ErrorBoundary from './components/ErrorBoundary';
+import ErrorFallback from './components/ErrorFallback';
 
 function App() {
   return (
@@ -59,7 +61,9 @@ function App() {
               path="/dashboard/student/*" 
               element={
                 <ProtectedRoute allowedRoles={['student']}>
-                  <StudentDashboard />
+                  <ErrorBoundary fallback={<ErrorFallback />}>
+                    <StudentDashboard />
+                  </ErrorBoundary>
                 </ProtectedRoute>
               } 
             />
@@ -68,14 +72,16 @@ function App() {
               path="/dashboard/institute/*" 
               element={
                 <ProtectedRoute allowedRoles={['institute']}>
-                  <InstituteDashboard />
+                  <ErrorBoundary fallback={<ErrorFallback />}>
+                    <InstituteDashboard />
+                  </ErrorBoundary>
                 </ProtectedRoute>
               } 
             />
             {/* Additional routes will be added here */}
             
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/admin" element={<ErrorBoundary fallback={<ErrorFallback />}><AdminLayout /></ErrorBoundary>}>
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="collaborators" element={<ManageCollaborators />} />

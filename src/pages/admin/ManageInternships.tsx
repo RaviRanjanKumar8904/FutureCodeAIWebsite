@@ -15,40 +15,7 @@ export default function ManageInternships() {
       const q = query(collection(db, 'internships'), orderBy('title'));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      if (data.length === 0) {
-        setInternships([
-          {
-            id: 'm1',
-            title: 'MERN Stack Developer Intern',
-            domain: 'Web Development',
-            duration: '3 Months',
-            type: 'Remote',
-            isActive: true,
-            applicantsCount: 342
-          },
-          {
-            id: 'm2',
-            title: 'Machine Learning Research Intern',
-            domain: 'AI & Data Science',
-            duration: '6 Months',
-            type: 'Hybrid',
-            isActive: true,
-            applicantsCount: 156
-          },
-          {
-            id: 'm3',
-            title: 'UI/UX Design Intern',
-            domain: 'Design',
-            duration: '2 Months',
-            type: 'Remote',
-            isActive: false,
-            applicantsCount: 0
-          }
-        ]);
-      } else {
-        setInternships(data);
-      }
+      setInternships(data);
     } catch (error) {
       console.error("Error fetching internships:", error);
     } finally {
@@ -61,10 +28,7 @@ export default function ManageInternships() {
   }, []);
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    if (id.startsWith('m')) {
-      toast.error("Cannot edit mock data.");
-      return;
-    }
+
     try {
       await updateDoc(doc(db, 'internships', id), {
         isActive: !currentStatus

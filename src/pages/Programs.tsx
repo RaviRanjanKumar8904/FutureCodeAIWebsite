@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { db } from '../firebase/config';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import BackgroundBlobs from '../components/BackgroundBlobs';
 import ProgramsHero from '../components/programs/ProgramsHero';
 import FilterBar from '../components/programs/FilterBar';
@@ -10,87 +12,9 @@ import EnquiryFormModal from '../components/programs/EnquiryFormModal';
 import type { TargetInfo } from '../components/programs/EnquiryFormModal';
 import CityCTA from '../components/programs/CityCTA';
 import SEO from '../components/SEO';
-
-const fallbackCourses: CourseData[] = [
-  {
-    id: "course-1",
-    title: "Advanced Full-Stack Development",
-    description: "Master modern web development from front to back. Build real-world applications using React, Node.js, and MongoDB.",
-    category: "Web Development",
-    duration: "16 Weeks",
-    level: "Intermediate",
-    institute: { name: "FutureCode Academy", city: "Purnea", address: "Tech Park, Bailey Road" },
-    thumbnailUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    galleryUrls: [
-      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80",
-      "https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80"
-    ],
-    syllabus: [
-      { title: "Frontend Mastery with React", topics: ["Components & Props", "State Management (Redux/Zustand)", "Routing & Hooks", "Performance Optimization"] },
-      { title: "Backend Architecture", topics: ["Node.js & Express", "RESTful APIs", "Authentication (JWT)", "Microservices Intro"] },
-      { title: "Database Design", topics: ["MongoDB Fundamentals", "Mongoose ORM", "Aggregation Framework", "NoSQL vs SQL"] }
-    ],
-    batchTimings: "Mon, Wed, Fri - 6:00 PM to 8:00 PM",
-    isActive: true
-  },
-  {
-    id: "course-2",
-    title: "AI & Machine Learning Foundations",
-    description: "Dive deep into the algorithms that power modern AI. Learn Python, Pandas, TensorFlow, and build predictive models.",
-    category: "AI/ML",
-    duration: "12 Weeks",
-    level: "Advanced",
-    institute: { name: "CodeCraft Institute", city: "Purnea", address: "HSR Layout, Sector 2" },
-    thumbnailUrl: "https://images.unsplash.com/photo-1555255707-c07966088b7b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    galleryUrls: [],
-    syllabus: [
-      { title: "Data Science with Python", topics: ["Numpy & Pandas", "Data Visualization", "Statistical Analysis"] },
-      { title: "Machine Learning Core", topics: ["Linear Regression", "Decision Trees", "SVM & KNN"] },
-      { title: "Deep Learning Intro", topics: ["Neural Networks", "TensorFlow Basics", "Image Classification"] }
-    ],
-    batchTimings: "Weekends - 10:00 AM to 1:00 PM",
-    isActive: true
-  },
-  {
-    id: "course-3",
-    title: "Mastering Data Structures in C++",
-    description: "The ultimate preparation for product-based company interviews. Master DSA, problem-solving, and algorithmic thinking.",
-    category: "Programming Languages",
-    duration: "10 Weeks",
-    level: "Beginner",
-    institute: { name: "Apex Coaching", city: "Purnea", address: "Boring Road Crossing" },
-    thumbnailUrl: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    galleryUrls: [],
-    syllabus: [
-      { title: "C++ Fundamentals", topics: ["Syntax & Pointers", "OOP Concepts", "STL Libraries"] },
-      { title: "Core Data Structures", topics: ["Arrays & Strings", "Linked Lists", "Stacks & Queues"] },
-      { title: "Advanced Algorithms", topics: ["Trees & Graphs", "Dynamic Programming", "Sorting & Searching"] }
-    ],
-    batchTimings: "Tue, Thu, Sat - 5:00 PM to 7:00 PM",
-    isActive: true
-  },
-  {
-    id: "course-4",
-    title: "Prompt Engineering & Generative AI",
-    description: "Learn to harness the power of LLMs like ChatGPT and Claude to automate workflows and build AI-powered apps.",
-    category: "Prompt Engineering",
-    duration: "6 Weeks",
-    level: "Beginner",
-    institute: { name: "FutureCode Academy", city: "Purnea", address: "Kalyani Nagar" },
-    thumbnailUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    galleryUrls: [],
-    syllabus: [
-      { title: "Understanding LLMs", topics: ["How Transformers Work", "Zero-shot & Few-shot Learning"] },
-      { title: "Advanced Prompting Techniques", topics: ["Chain of Thought", "ReAct Framework", "Prompt Injection Security"] },
-      { title: "Building AI Apps", topics: ["OpenAI API", "LangChain Basics", "RAG (Retrieval-Augmented Generation)"] }
-    ],
-    batchTimings: "Sun - 9:00 AM to 12:00 PM",
-    isActive: true
-  }
-];
-
 export default function Programs() {
-  const [courses] = useState<CourseData[]>(fallbackCourses);
+  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [cityFilter, setCityFilter] = useState('All');
@@ -107,6 +31,25 @@ export default function Programs() {
     if (location.pathname === '/programs/dsa') setCategoryFilter('Programming Languages');
     if (location.pathname === '/programs/prompt-engineering') setCategoryFilter('Prompt Engineering');
   }, [location]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const q = query(collection(db, 'courses'), where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        const fetchedCourses = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as CourseData[];
+        setCourses(fetchedCourses);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
 
   // Derived state for filters
   const categories = useMemo(() => Array.from(new Set(courses.map(c => c.category))), [courses]);
@@ -151,7 +94,11 @@ export default function Programs() {
 
         <section className="py-20 relative z-10 min-h-[50vh]">
           <div className="container mx-auto px-6 max-w-7xl">
-            {filteredCourses.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+              </div>
+            ) : filteredCourses.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                 {filteredCourses.map((course, index) => (
                   <CourseCard 

@@ -18,22 +18,7 @@ export default function ManageCollaborators() {
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-      // If empty (because DB is empty), add a mock one for demo
-      if (data.length === 0) {
-        setCollaborators([
-          {
-            id: 'mock1',
-            name: 'Demo Institute',
-            type: 'Coaching Institute',
-            city: 'Patna',
-            isApproved: false,
-            isActive: false,
-            email: 'admin@demoinst.com'
-          }
-        ]);
-      } else {
-        setCollaborators(data);
-      }
+      setCollaborators(data);
     } catch (error) {
       console.error("Error fetching collaborators:", error);
     } finally {
@@ -46,10 +31,6 @@ export default function ManageCollaborators() {
   }, []);
 
   const handleUpdateStatus = async (id: string, isApproved: boolean, isActive: boolean) => {
-    if (id === 'mock1') {
-      toast.error("Cannot edit mock data.");
-      return;
-    }
     try {
       await updateDoc(doc(db, 'collaborators', id), {
         isApproved,

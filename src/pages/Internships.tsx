@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { db } from '../firebase/config';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import BackgroundBlobs from '../components/BackgroundBlobs';
 import InternshipHero from '../components/internships/InternshipHero';
 import InternshipBenefits from '../components/internships/InternshipBenefits';
@@ -9,66 +11,36 @@ import InternshipTimeline from '../components/internships/InternshipTimeline';
 import EnquiryFormModal from '../components/programs/EnquiryFormModal';
 import type { TargetInfo } from '../components/programs/EnquiryFormModal';
 import SEO from '../components/SEO';
-
-const fallbackInternships: InternshipData[] = [
-  {
-    id: "int-1",
-    title: "Frontend Developer Intern",
-    domain: "Web Development",
-    description: "Work on live consumer-facing web applications. You will be building responsive UIs, integrating REST APIs, and optimizing performance using React and modern CSS.",
-    duration: "3 - 6 Months",
-    eligibility: "B.Tech/BCA/MCA (3rd Year or above)",
-    stipend: "Performance Based + Certificate",
-    skills: ["React.js", "Tailwind CSS", "TypeScript", "Git"],
-    deadline: "Aug 30, 2026",
-    isActive: true
-  },
-  {
-    id: "int-2",
-    title: "Machine Learning Intern",
-    domain: "AI / ML",
-    description: "Assist our core AI team in training and fine-tuning predictive models. You'll be working with real datasets, dealing with data cleaning, and deploying basic models.",
-    duration: "6 Months",
-    eligibility: "B.Tech CS/IT with strong Math background",
-    stipend: "Certificate + Pre-Placement Offer (PPO) Opportunity",
-    skills: ["Python", "Pandas", "Scikit-learn", "TensorFlow basics"],
-    deadline: "Sep 15, 2026",
-    isActive: true
-  },
-  {
-    id: "int-3",
-    title: "Backend Developer Intern",
-    domain: "Full-Stack",
-    description: "Design and implement scalable backend microservices. You will work on database architecture, authentication flows, and server optimization.",
-    duration: "3 Months",
-    eligibility: "Any tech background with strong problem-solving skills",
-    stipend: "Certificate Based",
-    skills: ["Node.js", "Express", "MongoDB", "REST APIs"],
-    deadline: "Aug 15, 2026",
-    isActive: true
-  },
-  {
-    id: "int-4",
-    title: "Prompt Engineering Intern",
-    domain: "Generative AI",
-    description: "Explore the bleeding edge of Generative AI. You will build and test prompt pipelines to automate content generation and data extraction tasks.",
-    duration: "2 Months",
-    eligibility: "Open to all, strong communication required",
-    stipend: "Certificate Based",
-    skills: ["ChatGPT / Claude APIs", "Prompt Structuring", "Analytical Thinking"],
-    deadline: "Rolling Basis",
-    isActive: true
-  }
-];
+import { Briefcase } from 'lucide-react';
 
 export default function Internships() {
-  const [internships] = useState<InternshipData[]>(fallbackInternships);
+  const [internships, setInternships] = useState<InternshipData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedInternship, setSelectedInternship] = useState<InternshipData | null>(null);
   const [applyingForTarget, setApplyingForTarget] = useState<TargetInfo | null>(null);
 
   const handleApply = (target: TargetInfo) => {
     setApplyingForTarget(target);
   };
+
+  useEffect(() => {
+    const fetchInternships = async () => {
+      try {
+        const q = query(collection(db, 'internships'), where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        const fetchedInternships = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as InternshipData[];
+        setInternships(fetchedInternships);
+      } catch (error) {
+        console.error("Error fetching internships:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInternships();
+  }, []);
 
   return (
     <div className="w-full relative bg-background min-h-screen">
@@ -91,14 +63,28 @@ export default function Internships() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {internships.map((internship, index) => (
-                <InternshipCard 
-                  key={internship.id}
-                  internship={internship}
-                  index={index}
-                  onClick={() => setSelectedInternship(internship)}
-                />
-              ))}
+              {loading ? (
+                <div className="col-span-full flex justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                </div>
+              ) : internships.length === 0 ? (
+                <div className="col-span-full text-center py-20">
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Briefcase size={32} className="text-slate-400" />
+                  </div>
+                  <h3 className="text-2xl font-extrabold text-text-heading mb-3">No Internships Currently Open</h3>
+                  <p className="text-slate-500 font-medium">Please check back later for new opportunities.</p>
+                </div>
+              ) : (
+                internships.map((internship, index) => (
+                  <InternshipCard 
+                    key={internship.id}
+                    internship={internship}
+                    index={index}
+                    onClick={() => setSelectedInternship(internship)}
+                  />
+                ))
+              )}
             </div>
           </div>
         </section>
