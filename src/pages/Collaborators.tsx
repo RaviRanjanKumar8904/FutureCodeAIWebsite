@@ -182,7 +182,7 @@ export default function Collaborators() {
         ) : (
           <motion.div 
             layout
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24"
+            className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-24"
           >
             <AnimatePresence>
               {filteredData.map((collab) => (
@@ -200,43 +200,44 @@ export default function Collaborators() {
                     whileHover={{ rotateX: 2, rotateY: -2, scale: 1.02 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     onClick={() => setSelectedCollab(collab)}
-                    className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 cursor-pointer h-full flex flex-col hover:shadow-xl transition-shadow"
+                    className="bg-white rounded-[1.5rem] md:rounded-3xl p-4 md:p-8 shadow-sm border border-gray-100 cursor-pointer h-full flex flex-col hover:shadow-xl transition-shadow"
                   >
-                    <div className="flex items-start justify-between mb-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
                       <img 
                         src={collab.logoUrl} 
                         alt={collab.name} 
-                        className="w-16 h-16 rounded-2xl object-cover bg-slate-50 border border-gray-100 shadow-sm"
+                        className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl object-cover bg-slate-50 border border-gray-100 shadow-sm"
                       />
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-600 text-xs font-bold rounded-lg border border-gray-100">
-                        {collab.type === 'College' ? <GraduationCap size={14} /> : <Building2 size={14} />}
+                      <span className="inline-flex items-center gap-1 px-2 py-1 md:px-3 md:py-1.5 bg-slate-50 text-slate-600 text-[10px] md:text-xs font-bold rounded-lg border border-gray-100">
+                        {collab.type === 'College' ? <GraduationCap size={12} className="md:w-3.5 md:h-3.5" /> : <Building2 size={12} className="md:w-3.5 md:h-3.5" />}
                         {collab.type}
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-extrabold text-text-heading mb-2 line-clamp-1">{collab.name}</h3>
+                    <h3 className="text-base md:text-xl font-extrabold text-text-heading mb-1 md:mb-2 line-clamp-2 md:line-clamp-1 leading-tight">{collab.name}</h3>
                     
-                    <div className="flex items-center gap-2 text-slate-500 text-sm font-medium mb-4">
-                      <MapPin size={16} className="text-primary" />
+                    <div className="flex items-center gap-1.5 md:gap-2 text-slate-500 text-xs md:text-sm font-medium mb-3 md:mb-4">
+                      <MapPin size={14} className="text-primary md:w-4 md:h-4" />
                       {collab.city}
                     </div>
                     
-                    <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
+                    <p className="text-slate-600 text-[11px] md:text-sm leading-relaxed mb-4 md:mb-6 flex-1 line-clamp-3">
                       {collab.description}
                     </p>
 
-                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between mt-auto">
-                      <div className="flex items-center gap-2 text-indigo-600 font-bold text-sm bg-indigo-50 px-3 py-1.5 rounded-lg">
-                        <BookOpen size={16} />
-                        Active Courses
+                    <div className="pt-3 md:pt-4 border-t border-gray-100 flex items-center justify-between mt-auto gap-2">
+                      <div className="flex items-center gap-1.5 md:gap-2 text-indigo-600 font-bold text-[10px] md:text-sm bg-indigo-50 px-2 py-1 md:px-3 md:py-1.5 rounded-lg">
+                        <BookOpen size={12} className="md:w-4 md:h-4" />
+                        <span className="hidden sm:inline">Active Courses</span>
+                        <span className="sm:hidden">Courses</span>
                       </div>
                       
                       <Link 
                         to={`/programs?institute=${collab.id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors"
+                        className="shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-colors"
                       >
-                        <ArrowRight size={18} />
+                        <ArrowRight size={14} className="md:w-[18px] md:h-[18px]" />
                       </Link>
                     </div>
                   </motion.div>
