@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../../firebase/config';
 import { collection, setDoc, updateDoc, getDocs, getDoc, doc, query, orderBy, serverTimestamp, writeBatch } from 'firebase/firestore';
-import { Award, Plus, Trash2, Search, Copy, CheckCircle2, X, Upload } from 'lucide-react';
+import { Award, Plus, Trash2, Search, Copy, CheckCircle2, X, Upload, RotateCcw } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import Papa from 'papaparse';
@@ -129,6 +129,25 @@ export default function ManageCertificates() {
     } catch (error) {
       console.error("Error revoking certificate:", error);
       toast.error("Failed to revoke certificate", { id: toastId });
+    }
+  };
+
+  const handleUnrevoke = async (id: string, certId: string) => {
+    if (!window.confirm(`Are you sure you want to unrevoke certificate ${certId}? This will restore its valid status.`)) {
+      return;
+    }
+
+    const toastId = toast.loading("Unrevoking certificate...");
+    try {
+      await updateDoc(doc(db, 'certificates', id), {
+        revoked: false,
+        revokedAt: null
+      });
+      toast.success("Certificate restored successfully", { id: toastId });
+      fetchCertificates();
+    } catch (error) {
+      console.error("Error unrevoking certificate:", error);
+      toast.error("Failed to restore certificate", { id: toastId });
     }
   };
 
@@ -540,13 +559,22 @@ export default function ManageCertificates() {
                           <Copy size={18} />
                           <span className="text-xs font-bold hidden sm:inline-block">Link</span>
                         </button>
-                        {!cert.revoked && (
+                        {!cert.revoked ? (
                           <button 
                             onClick={() => handleRevoke(cert.id, cert.certificateId)}
                             className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                             title="Revoke Certificate"
                           >
                             <Trash2 size={18} />
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => handleUnrevoke(cert.id, cert.certificateId)}
+                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors flex items-center gap-1.5"
+                            title="Unrevoke Certificate"
+                          >
+                            <RotateCcw size={18} />
+                            <span className="text-xs font-bold hidden sm:inline-block">Restore</span>
                           </button>
                         )}
                       </div>
