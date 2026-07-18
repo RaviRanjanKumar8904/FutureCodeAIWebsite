@@ -1,0 +1,58 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    function isAdmin() {
+      return (isAuthenticated() && request.auth.token.email == 'raviranjan8904@gmail.com') ||
+             (isAuthenticated() && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    match /certificates/{allPaths=**} {
+      // Anyone can view a certificate file (for public verification)
+      allow read: if true;
+      // Only admins can upload or delete certificates
+      allow write: if isAdmin();
+    }
+
+    match /profile-photos/{uid}/{allPaths=**} {
+      // Anyone can view profile photos
+      allow read: if true;
+      // Only the user themselves or an admin can upload their profile photo
+      allow write: if isOwner(uid) || isAdmin();
+    }
+
+    match /gallery/{allPaths=**} {
+      // Anyone can view the gallery
+      allow read: if true;
+      // Only admins can upload new gallery images
+      allow write: if isAdmin();
+    }
+    
+    match /courses/{allPaths=**} {
+      // Anyone can view course assets (thumbnails, syllabus pdfs)
+      allow read: if true;
+      // Only admins can upload course assets
+      allow write: if isAdmin();
+    }
+    
+    match /collaborators/{allPaths=**} {
+      // Anyone can view collaborator logos/galleries
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default deny for anything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

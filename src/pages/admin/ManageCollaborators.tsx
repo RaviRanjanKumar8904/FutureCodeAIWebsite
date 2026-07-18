@@ -1,0 +1,215 @@
+import { useState, useEffect } from 'react';
+import { db } from '../../firebase/config';
+import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { Building2, Search, CheckCircle2, MoreVertical, Eye, Image as ImageIcon } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
+
+export default function ManageCollaborators() {
+  const [collaborators, setCollaborators] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved'>('All');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchCollaborators = async () => {
+    setLoading(true);
+    try {
+      // In a real app, you would query based on activeTab if dataset is huge.
+      const q = query(collection(db, 'collaborators'), orderBy('name'));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // If empty (because DB is empty), add a mock one for demo
+      if (data.length === 0) {
+        setCollaborators([
+          {
+            id: 'mock1',
+            name: 'Demo Institute',
+            type: 'Coaching Institute',
+            city: 'Patna',
+            isApproved: false,
+            isActive: false,
+            email: 'admin@demoinst.com'
+          }
+        ]);
+      } else {
+        setCollaborators(data);
+      }
+    } catch (error) {
+      console.error("Error fetching collaborators:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCollaborators();
+  }, []);
+
+  const handleUpdateStatus = async (id: string, isApproved: boolean, isActive: boolean) => {
+    if (id === 'mock1') {
+      toast.error("Cannot edit mock data.");
+      return;
+    }
+    try {
+      await updateDoc(doc(db, 'collaborators', id), {
+        isApproved,
+        isActive
+      });
+      toast.success(`Collaborator ${isApproved ? 'approved' : 'rejected'}`);
+      fetchCollaborators(); // refresh
+    } catch (error) {
+      console.error("Error updating:", error);
+      toast.error("Failed to update status");
+    }
+  };
+
+  const filteredData = collaborators.filter(collab => {
+    const matchesTab = 
+      activeTab === 'All' ? true : 
+      activeTab === 'Pending' ? !collab.isApproved : 
+      activeTab === 'Approved' ? collab.isApproved : true;
+      
+    const matchesSearch = collab.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (collab.city && collab.city.toLowerCase().includes(searchTerm.toLowerCase()));
+                          
+    return matchesTab && matchesSearch;
+  });
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      <Toaster position="top-center" />
+      
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600">
+            <Building2 size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-extrabold text-slate-900">Manage Collaborators</h1>
+            <p className="text-slate-500 font-medium">Approve and manage partner institutes & colleges.</p>
+          </div>
+        </div>
+        
+        <button className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm">
+          + Add Collaborator
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        
+        {/* Toolbar */}
+        <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50">
+          <div className="flex bg-slate-100 p-1 rounded-lg w-fit">
+            {['All', 'Pending', 'Approved'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as any)}
+                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+                  activeTab === tab 
+                    ? 'bg-white text-indigo-600 shadow-sm' 
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input 
+              type="text"
+              placeholder="Search collaborators..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm font-medium w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            />
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
+                <th className="p-4 pl-6">Collaborator</th>
+                <th className="p-4">Type & Location</th>
+                <th className="p-4">Status</th>
+                <th className="p-4 text-right pr-6">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-slate-500 font-medium">Loading...</td>
+                </tr>
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-slate-500 font-medium">No collaborators found matching your criteria.</td>
+                </tr>
+              ) : (
+                filteredData.map((collab) => (
+                  <tr key={collab.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="p-4 pl-6 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200 overflow-hidden">
+                        {collab.logoUrl ? (
+                          <img src={collab.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                        ) : (
+                          <ImageIcon size={18} className="text-slate-400" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-900">{collab.name}</p>
+                        <p className="text-xs text-slate-500 font-medium">{collab.email || 'No email'}</p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <p className="text-sm font-bold text-slate-700">{collab.type}</p>
+                      <p className="text-xs text-slate-500 font-medium">{collab.city}</p>
+                    </td>
+                    <td className="p-4">
+                      {collab.isApproved ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 size={14} /> Approved
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                          Pending Approval
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 pr-6 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {!collab.isApproved ? (
+                          <button 
+                            onClick={() => handleUpdateStatus(collab.id, true, true)}
+                            className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-lg transition-colors"
+                          >
+                            Approve
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => handleUpdateStatus(collab.id, false, false)}
+                            className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold rounded-lg transition-colors"
+                          >
+                            Revoke
+                          </button>
+                        )}
+                        <button className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                          <Eye size={18} />
+                        </button>
+                        <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                          <MoreVertical size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

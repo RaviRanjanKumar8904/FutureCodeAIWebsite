@@ -1,0 +1,195 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for role-based access control
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Since we store roles in the 'users' collection, we use get() to check them securely.
+    // NOTE: This incurs an extra read per rule evaluation.
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return (isAuthenticated() && request.auth.token.email == 'raviranjan8904@gmail.com') ||
+             (isAuthenticated() 
+             && getRole() == 'admin' 
+             && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    function isSuperAdmin() {
+      return (isAuthenticated() && request.auth.token.email == 'raviranjan8904@gmail.com') ||
+             (isAdmin() 
+             && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super_admin');
+    }
+
+    function isInstitute() {
+      return isAuthenticated() && getRole() == 'institute';
+    }
+    
+    function isStudent() {
+      return isAuthenticated() && getRole() == 'student';
+    }
+
+    // ----------------------------------------------------------------------
+    // USERS COLLECTION
+    // ----------------------------------------------------------------------
+    match /users/{userId} {
+      // Anyone can create their own user document during the OAuth signup process
+      allow create: if isOwner(userId);
+      
+      // Users can read their own profiles, admins can read all
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can update their own profiles EXCEPT the role field. Admins can update any field.
+      allow update: if isAdmin() || 
+                       (isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])));
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------------
+    // ADMINS & AUDIT LOGS
+    // ----------------------------------------------------------------------
+    match /admins/{adminId} {
+      // Admins can read the allow-list
+      allow read: if isAdmin();
+      // Only Super Admins can add or remove admins
+      allow write: if isSuperAdmin();
+    }
+
+    match /adminLogs/{logId} {
+      // Admins can read and write audit logs
+      allow read, write: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------------
+    // CONTACT MESSAGES & FAQS
+    // ----------------------------------------------------------------------
+    match /contactMessages/{msgId} {
+      // Anyone can submit a contact message
+      allow create: if true;
+      // Only admins can read, update, or delete them
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /faqs/{faqId} {
+      // Anyone can read FAQs
+      allow read: if true;
+      // Only admins can manage FAQs
+      allow write: if isAdmin();
+    }
+
+    match /gallery/{imageId} {
+      // Anyone can view the gallery
+      allow read: if true;
+      // Only admins can upload/modify gallery images
+      allow write: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if isAdmin() || resource.data.isPublished == true;
+      allow write: if isAdmin();
+    }
+
+    match /aboutPage/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /homeStats/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /collaborators/{collabId} {
+      // Public can only view active and approved collaborators, admins can view all
+      allow read: if isAdmin() || (resource.data.isActive == true && resource.data.isApproved == true);
+      // Only admins can manage collaborators
+      allow write: if isAdmin();
+    }
+
+    match /partnershipEnquiries/{enquiryId} {
+      // Anyone can submit a partnership enquiry
+      allow create: if true;
+      // Only admins can read, update, or delete them
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------------
+    // ENROLLMENTS COLLECTION
+    // ----------------------------------------------------------------------
+    match /enrollments/{enrollmentId} {
+      // Students can only read their own enrollments
+      // Institutes can only read enrollments tied to their specific institute ID
+      allow read: if isAdmin() || 
+                     (isStudent() && resource.data.studentId == request.auth.uid) ||
+                     (isInstitute() && resource.data.instituteId == request.auth.uid);
+                     
+      // Only admins can manage (create, update, delete) enrollments
+      allow write: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------------
+    // ENQUIRIES COLLECTION
+    // ----------------------------------------------------------------------
+    match /enquiries/{enquiryId} {
+      // Unauthenticated users (and anyone) can create an enquiry via the public website forms
+      allow create: if true;
+      
+      // Students can read their own submitted enquiries
+      // Institutes can read enquiries specifically tagged/assigned to them
+      allow read: if isAdmin() || 
+                     (isAuthenticated() && resource.data.studentId == request.auth.uid) ||
+                     (isInstitute() && resource.data.instituteId == request.auth.uid);
+                     
+      // Only admins can update or delete enquiries (e.g. changing status)
+      allow update, delete: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------------
+    // COURSES & BATCHES COLLECTION
+    // ----------------------------------------------------------------------
+    match /courses/{courseId} {
+      // Public can read active courses, admins can read all
+      allow read: if isAdmin() || resource.data.isActive == true;
+      // Only admins can modify courses
+      allow write: if isAdmin();
+    }
+
+    match /internships/{internshipId} {
+      // Public can read active internships, admins can read all
+      allow read: if isAdmin() || resource.data.isActive == true;
+      // Only admins can modify internships
+      allow write: if isAdmin();
+    }
+    
+    match /batches/{batchId} {
+      // Anyone can read batches
+      allow read: if true;
+      // Only admins can modify batches
+      allow write: if isAdmin();
+    }
+
+    // ----------------------------------------------------------------------
+    // CERTIFICATES COLLECTION
+    // ----------------------------------------------------------------------
+    match /certificates/{certId} {
+      // Anyone can verify (read) a certificate if they have the ID
+      // Students can also read their own certificates (if we were to query them)
+      allow read: if isAdmin() || (isStudent() && resource.data.studentId == request.auth.uid) || true; // true allows public verification GETs
+      
+      // Only admins can issue (write) certificates. Institutes CANNOT issue certificates.
+      allow write: if isAdmin();
+    }
+  }
+}
