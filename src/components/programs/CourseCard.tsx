@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Users } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import Reveal from '../Reveal';
 
 export interface CourseData {

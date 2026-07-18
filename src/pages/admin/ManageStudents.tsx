@@ -3,6 +3,7 @@ import { db } from '../../firebase/config';
 import { collection, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { Users, Search, Trash2, Mail, Eye, ShieldAlert, GraduationCap } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import StudentProfileModal from '../../components/admin/StudentProfileModal';
 
 interface Student {
   id: string;
@@ -17,6 +18,8 @@ export default function ManageStudents() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -170,7 +173,10 @@ export default function ManageStudents() {
                     <td className="p-4 pr-6 align-middle text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button 
-                          onClick={() => toast("Detailed profile view coming in Phase 3!", { icon: '🚧' })}
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setIsModalOpen(true);
+                          }}
                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1.5"
                           title="View Student Details"
                         >
@@ -204,6 +210,15 @@ export default function ManageStudents() {
           </p>
         </div>
       </div>
+
+      <StudentProfileModal 
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedStudent(null);
+        }}
+        student={selectedStudent}
+      />
     </div>
   );
 }

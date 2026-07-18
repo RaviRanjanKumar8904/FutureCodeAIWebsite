@@ -121,7 +121,7 @@ export default function StudentDashboard() {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto scroll-smooth">
+      <main className="flex-1 min-w-0 flex flex-col md:h-screen md:overflow-y-auto scroll-smooth">
         <div className="flex-1 p-4 md:p-8 lg:p-10 max-w-6xl mx-auto w-full">
           <DashboardHeader />
           

@@ -26,6 +26,12 @@ export default function AdminDashboard() {
     courses: 0,
     enquiries: 0
   });
+  const [trends, setTrends] = useState({
+    students: 0,
+    institutes: 0,
+    courses: 0,
+    enquiries: 0
+  });
   const [recentEnquiries, setRecentEnquiries] = useState<any[]>([]);
   const [chartData, setChartData] = useState<Array<{ name: string; enquiries: number }>>([]);
   const [loading, setLoading] = useState(true);
@@ -34,21 +40,58 @@ export default function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         // --- Real-time stats from Firestore ---
-        const [usersSnap, coursesSnap, enquiriesSnap] = await Promise.all([
+        const [usersSnap, coursesSnap, enquiriesSnap, collaboratorsSnap] = await Promise.all([
           getDocs(collection(db, 'users')),
           getDocs(collection(db, 'courses')),
           getDocs(collection(db, 'enquiries')),
+          getDocs(collection(db, 'collaborators')),
         ]);
 
+        const now = Date.now();
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+        let newStudents = 0;
+        let newInstitutes = 0;
+        let newCourses = 0;
+        let newEnquiries = 0;
+
         const usersData = usersSnap.docs.map(d => d.data());
-        const studentCount = usersData.filter(u => u.role === 'student').length;
-        const instituteCount = usersData.filter(u => u.role === 'institute').length;
+        const studentCount = usersData.filter(u => {
+          if (u.role === 'student') {
+            if (u.createdAt?.toMillis && now - u.createdAt.toMillis() < thirtyDaysMs) newStudents++;
+            return true;
+          }
+          return false;
+        }).length;
+
+        const instituteCount = collaboratorsSnap.size;
+        collaboratorsSnap.docs.forEach(d => {
+          const data = d.data();
+          if (data.createdAt?.toMillis && now - data.createdAt.toMillis() < thirtyDaysMs) newInstitutes++;
+        });
+
+        coursesSnap.docs.forEach(d => {
+          const data = d.data();
+          if (data.createdAt?.toMillis && now - data.createdAt.toMillis() < thirtyDaysMs) newCourses++;
+        });
+
+        enquiriesSnap.docs.forEach(d => {
+          const data = d.data();
+          if (data.createdAt?.toMillis && now - data.createdAt.toMillis() < thirtyDaysMs) newEnquiries++;
+        });
 
         setStats({
           students: studentCount,
           institutes: instituteCount,
           courses: coursesSnap.size,
           enquiries: enquiriesSnap.size
+        });
+        
+        setTrends({
+          students: newStudents,
+          institutes: newInstitutes,
+          courses: newCourses,
+          enquiries: newEnquiries
         });
 
         // --- Recent enquiries sidebar ---
@@ -141,11 +184,17 @@ export default function AdminDashboard() {
         </div>
       </div>
       <div className="mt-4 flex items-center gap-2 text-sm">
-        <span className="flex items-center gap-1 text-emerald-600 font-medium">
-          <ArrowUpRight size={16} />
-          {trend}
-        </span>
-        <span className="text-slate-400">vs last month</span>
+        {trend > 0 ? (
+          <>
+            <span className="flex items-center gap-1 text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-md">
+              <ArrowUpRight size={16} />
+              +{trend}
+            </span>
+            <span className="text-slate-400">new this month</span>
+          </>
+        ) : (
+          <span className="text-slate-400">No new this month</span>
+        )}
       </div>
     </div>
   );
@@ -158,28 +207,28 @@ export default function AdminDashboard() {
           title="Total Students" 
           value={stats.students} 
           icon={Users} 
-          trend="12.5%" 
+          trend={trends.students} 
           color="bg-blue-50 text-blue-600" 
         />
         <StatCard 
-          title="Partner Institutes" 
+          title="Collaborators" 
           value={stats.institutes} 
           icon={Building2} 
-          trend="4.2%" 
+          trend={trends.institutes} 
           color="bg-emerald-50 text-emerald-600" 
         />
         <StatCard 
           title="Active Courses" 
           value={stats.courses} 
           icon={BookOpen} 
-          trend="8.1%" 
+          trend={trends.courses} 
           color="bg-purple-50 text-purple-600" 
         />
         <StatCard 
-          title="New Enquiries" 
+          title="Total Enquiries" 
           value={stats.enquiries} 
           icon={MessageSquare} 
-          trend="24.5%" 
+          trend={trends.enquiries} 
           color="bg-amber-50 text-amber-600" 
         />
       </div>

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { Building2, Search, CheckCircle2, MoreVertical, Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Building2, Search, CheckCircle2, Image as ImageIcon, Pencil, Trash2 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import AddCollaboratorModal from '../../components/admin/AddCollaboratorModal';
 
@@ -13,7 +12,6 @@ export default function ManageCollaborators() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved'>('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
 
   const fetchCollaborators = async () => {
     setLoading(true);
