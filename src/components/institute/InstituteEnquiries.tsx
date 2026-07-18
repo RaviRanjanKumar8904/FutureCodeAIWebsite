@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, Phone, Clock, Search, Filter } from 'lucide-react';
 import { db } from '../../firebase/config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Enquiry {
   id: string;

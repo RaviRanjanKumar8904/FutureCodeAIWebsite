@@ -1,4 +1,4 @@
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { motion } from 'framer-motion';
 
 export default function DashboardHeader() {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { 
   Users, 

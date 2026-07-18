@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
@@ -29,13 +29,7 @@ export default function VerifyCertificate() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'revoked'>('idle');
   const [data, setData] = useState<any | null>(null);
 
-  useEffect(() => {
-    const idFromUrl = searchParams.get('id');
-    if (idFromUrl) {
-      setCertificateId(idFromUrl);
-      handleVerify(idFromUrl);
-    }
-  }, []);
+
 
   const checkRateLimit = () => {
     const now = Date.now();
@@ -54,7 +48,7 @@ export default function VerifyCertificate() {
     return true;
   };
 
-  const handleVerify = async (idToVerify?: string) => {
+  const handleVerify = useCallback(async (idToVerify?: string) => {
     const id = typeof idToVerify === 'string' ? idToVerify : certificateId;
     if (!id.trim()) return;
 
@@ -103,7 +97,15 @@ export default function VerifyCertificate() {
       // In dev mode without keys, this will fail. Show error state.
       setStatus('error');
     }
-  };
+  }, [certificateId]);
+
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id');
+    if (idFromUrl) {
+      setCertificateId(idFromUrl);
+      handleVerify(idFromUrl);
+    }
+  }, [searchParams, handleVerify]);
 
   return (
     <div className="w-full relative bg-background min-h-screen">

@@ -43,6 +43,7 @@ function App() {
       <SmoothScroll>
         <div className="flex flex-col min-h-screen">
           <Navbar />
+          <ErrorBoundary fallback={<ErrorFallback />}>
           <Suspense fallback={<GlobalLoader fullScreen />}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -61,9 +62,7 @@ function App() {
               path="/dashboard/student/*" 
               element={
                 <ProtectedRoute allowedRoles={['student']}>
-                  <ErrorBoundary fallback={<ErrorFallback />}>
-                    <StudentDashboard />
-                  </ErrorBoundary>
+                  <StudentDashboard />
                 </ProtectedRoute>
               } 
             />
@@ -72,16 +71,14 @@ function App() {
               path="/dashboard/institute/*" 
               element={
                 <ProtectedRoute allowedRoles={['institute']}>
-                  <ErrorBoundary fallback={<ErrorFallback />}>
-                    <InstituteDashboard />
-                  </ErrorBoundary>
+                  <InstituteDashboard />
                 </ProtectedRoute>
               } 
             />
             {/* Additional routes will be added here */}
             
             {/* Admin Routes */}
-            <Route path="/admin" element={<ErrorBoundary fallback={<ErrorFallback />}><AdminLayout /></ErrorBoundary>}>
+            <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="collaborators" element={<ManageCollaborators />} />
@@ -100,6 +97,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
           </Suspense>
+          </ErrorBoundary>
           <WhatsAppButton />
           <Footer />
         </div>

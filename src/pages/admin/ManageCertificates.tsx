@@ -3,7 +3,7 @@ import { db } from '../../firebase/config';
 import { collection, setDoc, updateDoc, getDocs, getDoc, doc, query, orderBy, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Award, Plus, Trash2, Search, Copy, CheckCircle2, X, Upload } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import Papa from 'papaparse';
 
 interface Certificate {

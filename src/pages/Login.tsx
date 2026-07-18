@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { Shield, Lock, GraduationCap, Building2, ShieldCheck, ArrowRight } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import SEO from '../components/SEO';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, doc, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { Shield, ShieldAlert, Trash2, Plus, UserPlus } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 

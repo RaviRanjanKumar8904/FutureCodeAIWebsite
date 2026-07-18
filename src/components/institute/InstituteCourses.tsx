@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { BookOpen, Users, Clock, CalendarDays } from 'lucide-react';
 import { db } from '../../firebase/config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Batch {
   id: string;
