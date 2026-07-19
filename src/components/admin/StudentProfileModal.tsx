@@ -1,4 +1,4 @@
-import { X, Mail, Calendar, Shield, IdCard, Phone, MapPin, GraduationCap, BookOpen, ExternalLink } from 'lucide-react';
+import { X, Mail, Calendar, Shield, IdCard, Phone, MapPin, GraduationCap, BookOpen, ExternalLink, Building2 } from 'lucide-react';
 
 interface Student {
   id: string;
@@ -14,6 +14,9 @@ interface Student {
   yearOfStudy?: string;
   githubUrl?: string;
   linkedinUrl?: string;
+  enrolledCourse?: string;
+  assignedCenter?: string;
+  batch?: string;
 }
 
 interface StudentProfileModalProps {
@@ -102,6 +105,42 @@ export default function StudentProfileModal({ isOpen, onClose, student }: Studen
                 <p className="text-sm font-bold text-slate-700 capitalize">{student.role}</p>
               </div>
             </div>
+
+            {student.enrolledCourse && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                  <BookOpen size={18} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Enrolled Course</p>
+                  <p className="text-sm font-bold text-slate-700">{student.enrolledCourse}</p>
+                </div>
+              </div>
+            )}
+
+            {student.assignedCenter && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                  <Building2 size={18} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Coaching Center</p>
+                  <p className="text-sm font-bold text-slate-700">{student.assignedCenter}</p>
+                </div>
+              </div>
+            )}
+
+            {student.batch && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Batch</p>
+                  <p className="text-sm font-bold text-indigo-700">{student.batch}</p>
+                </div>
+              </div>
+            )}
 
             {student.phone && (
               <div className="flex items-center gap-3">
