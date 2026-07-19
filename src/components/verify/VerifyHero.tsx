@@ -66,20 +66,22 @@ export default function VerifyHero({ certificateId, setCertificateId, onVerify, 
             </p>
 
             <form onSubmit={handleSubmit} className="relative max-w-xl mx-auto">
-              <div className="relative flex items-center">
-                <Search className="absolute left-6 text-slate-400" size={24} />
-                <input 
-                  type="text"
-                  value={certificateId}
-                  onChange={(e) => setCertificateId(e.target.value)}
-                  placeholder="e.g. FC-2026-DEMO"
-                  className="w-full bg-white/50 backdrop-blur-sm border-2 border-primary/20 text-text-heading text-lg font-semibold rounded-full py-5 pl-16 pr-40 outline-none focus:border-primary transition-all shadow-inner uppercase"
-                  required
-                />
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="relative w-full">
+                  <Search className="absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 text-slate-400" size={24} />
+                  <input 
+                    type="text"
+                    value={certificateId}
+                    onChange={(e) => setCertificateId(e.target.value)}
+                    placeholder="e.g. FC-2026-DEMO"
+                    className="w-full bg-white/50 backdrop-blur-sm border-2 border-primary/20 text-text-heading text-base sm:text-lg font-semibold rounded-2xl sm:rounded-full py-4 sm:py-5 pl-14 sm:pl-16 pr-4 sm:pr-6 outline-none focus:border-primary transition-all shadow-inner uppercase"
+                    required
+                  />
+                </div>
                 <button 
                   type="submit"
                   disabled={isLoading || !certificateId.trim()}
-                  className="absolute right-2 top-2 bottom-2 bg-primary text-white px-8 rounded-full font-bold hover:bg-indigo-500 transition-all shadow-glow-primary active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center min-w-[120px]"
+                  className="w-full sm:w-auto bg-primary text-white px-8 py-4 sm:py-5 rounded-2xl sm:rounded-full font-bold hover:bg-indigo-500 transition-all shadow-glow-primary active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center sm:min-w-[120px]"
                 >
                   {isLoading ? (
                     <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
