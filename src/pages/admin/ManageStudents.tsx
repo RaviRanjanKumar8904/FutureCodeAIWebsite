@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, deleteDoc, doc, query, where, writeBatch, addDoc, serverTimestamp, orderBy, updateDoc } from 'firebase/firestore';
-import { Users, Search, Trash2, Mail, Eye, ShieldAlert, GraduationCap, Plus, Download, Upload, Award, CheckSquare, Square, Calendar, Filter, X } from 'lucide-react';
+import { Users, Search, Trash2, Mail, Eye, ShieldAlert, GraduationCap, Plus, Download, Upload, Award, CheckSquare, Square, Calendar, Filter, X, Edit2 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import StudentProfileModal from '../../components/admin/StudentProfileModal';
 import EnrollStudentModal from '../../components/admin/EnrollStudentModal';
+import EditStudentModal from '../../components/admin/EditStudentModal';
 import Papa from 'papaparse';
 
 interface Student {
@@ -48,6 +49,7 @@ export default function ManageStudents() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEnrollOpen, setIsEnrollOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filterCourse, setFilterCourse] = useState('');
   const [filterCenter, setFilterCenter] = useState('');
@@ -465,6 +467,10 @@ export default function ManageStudents() {
                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Profile">
                           <Eye size={16} />
                         </button>
+                        <button onClick={() => { setSelectedStudent(student); setIsEditOpen(true); }}
+                          className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Edit Student">
+                          <Edit2 size={16} />
+                        </button>
                         <button onClick={() => handleDelete(student.id, student.displayName || 'student')}
                           className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete">
                           <Trash2 size={16} />
@@ -524,6 +530,7 @@ export default function ManageStudents() {
       {/* Modals */}
       <StudentProfileModal isOpen={isProfileOpen} onClose={() => { setIsProfileOpen(false); setSelectedStudent(null); }} student={selectedStudent} />
       <EnrollStudentModal isOpen={isEnrollOpen} onClose={() => setIsEnrollOpen(false)} onSuccess={fetchAll} />
+      <EditStudentModal isOpen={isEditOpen} onClose={() => { setIsEditOpen(false); setSelectedStudent(null); }} onSuccess={fetchAll} student={selectedStudent} />
     </div>
   );
 }
