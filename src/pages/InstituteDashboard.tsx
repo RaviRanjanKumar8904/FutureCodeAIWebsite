@@ -35,7 +35,7 @@ export default function InstituteDashboard() {
   if (user.role !== 'institute') return <Navigate to="/dashboard/student" />;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-body">
+    <div className="h-screen bg-slate-50 flex flex-col md:flex-row font-body overflow-hidden">
       
       {/* Mobile Topbar */}
       <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-30 relative shadow-sm">
@@ -122,7 +122,7 @@ export default function InstituteDashboard() {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main data-lenis-prevent className="flex-1 min-w-0 flex flex-col md:h-screen md:overflow-y-auto scroll-smooth">
+      <main data-lenis-prevent className="flex-1 min-w-0 flex flex-col h-full overflow-y-auto scroll-smooth">
         <div className="flex-1 p-4 md:p-8 lg:p-10 max-w-6xl mx-auto w-full">
           <InstituteHeader />
           
