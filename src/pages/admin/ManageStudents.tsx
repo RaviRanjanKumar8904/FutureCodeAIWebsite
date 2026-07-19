@@ -80,7 +80,15 @@ export default function ManageStudents() {
           batch: enroll?.batch || '',
         } as Student;
       });
-      data.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      data.sort((a, b) => {
+        const getMs = (val: any) => {
+          if (!val) return 0;
+          if (typeof val.toMillis === 'function') return val.toMillis();
+          if (val.seconds) return val.seconds * 1000;
+          return Date.now(); // If it's a pending server timestamp, treat it as "just now"
+        };
+        return getMs(b.createdAt) - getMs(a.createdAt);
+      });
       setStudents(data);
 
       setCenters(centersSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter((c: any) => c.isApproved));
