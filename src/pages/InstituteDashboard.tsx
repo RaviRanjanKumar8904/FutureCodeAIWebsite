@@ -35,7 +35,7 @@ export default function InstituteDashboard() {
   if (user.role !== 'institute') return <Navigate to="/dashboard/student" />;
 
   return (
-    <div className="h-screen bg-slate-50 flex flex-col md:flex-row font-body overflow-hidden">
+    <div className="h-[100dvh] bg-slate-50 flex flex-col md:flex-row font-body overflow-hidden">
       
       {/* Mobile Topbar */}
       <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-30 relative shadow-sm">
@@ -59,7 +59,7 @@ export default function InstituteDashboard() {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 bg-white border-r border-gray-100 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] ${
+            className={`fixed md:sticky top-0 left-0 z-40 h-[100dvh] w-64 bg-white border-r border-gray-100 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] ${
               sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
             }`}
           >
