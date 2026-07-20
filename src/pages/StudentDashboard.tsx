@@ -37,10 +37,10 @@ export default function StudentDashboard() {
   if (!user) return <Navigate to="/" />;
 
   return (
-    <div className="h-[100dvh] bg-slate-50 flex flex-col md:flex-row font-body overflow-hidden">
+    <div className="h-[100dvh] bg-slate-50 flex flex-col md:flex-row font-body">
       
       {/* Mobile Topbar */}
-      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-30 relative shadow-sm">
+      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between z-30 relative shadow-sm shrink-0">
         <Link to="/" className="flex items-center gap-2">
           <img src="/logo.jpg" alt="Logo" className="h-8 w-auto rounded-md" />
           <span className="font-heading font-extrabold text-lg tracking-tight">
@@ -121,8 +121,8 @@ export default function StudentDashboard() {
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 flex flex-col h-full overflow-y-auto scroll-smooth">
-        <div className="flex-1 p-4 md:p-8 lg:p-10 max-w-6xl mx-auto w-full">
+      <main className="flex-1 min-w-0 min-h-0 overflow-y-auto overscroll-contain scroll-smooth -webkit-overflow-scrolling-touch">
+        <div className="p-4 md:p-8 lg:p-10 max-w-6xl mx-auto w-full pb-8">
           <DashboardHeader />
           
           <AnimatePresence mode="wait">

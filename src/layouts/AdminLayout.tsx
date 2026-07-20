@@ -64,7 +64,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="h-[100dvh] bg-slate-50 flex">
       {/* Mobile Sidebar Backdrop */}
       {isMobileMenuOpen && (
         <div 
@@ -121,9 +121,9 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content area */}
-      <div className="flex-1 md:ml-64 flex flex-col min-h-screen w-full">
+      <div className="flex-1 md:ml-64 flex flex-col h-[100dvh] w-full">
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-8 z-30 shrink-0">
           <div className="flex items-center gap-3">
             <button 
               className="md:hidden text-slate-600 hover:text-indigo-600 p-1"
@@ -148,7 +148,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 w-full max-w-[100vw] overflow-x-hidden">
+        <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 w-full max-w-[100vw] overflow-x-hidden -webkit-overflow-scrolling-touch">
           <Outlet />
         </main>
       </div>

@@ -19,3 +19,8 @@
     @apply bg-white/70 backdrop-blur-2xl border border-white/60 shadow-xl;
   }
 }
+
+/* Ensure dashboard scroll containers work on iOS */
+.-webkit-overflow-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
+}
