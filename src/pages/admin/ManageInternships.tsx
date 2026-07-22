@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { Briefcase, Search, Plus, MoreVertical, Edit2, CheckCircle2, XCircle } from 'lucide-react';
+import { Briefcase, Search, Plus } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import AddInternshipModal from '../../components/admin/AddInternshipModal';
 
@@ -92,94 +92,70 @@ export default function ManageInternships() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
-                <th className="p-4 pl-6">Internship Details</th>
-                <th className="p-4">Duration & Type</th>
-                <th className="p-4">Applicants</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right pr-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-500 font-medium">Loading internships...</td>
-                </tr>
-              ) : filteredData.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-500 font-medium">No internships found.</td>
-                </tr>
-              ) : (
-                filteredData.map((internship) => (
-                  <tr key={internship.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="p-4 pl-6">
-                      <p className="font-bold text-slate-900 mb-1">{internship.title}</p>
-                      <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-500 uppercase tracking-wider">
-                        {internship.domain}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-sm font-bold text-slate-700">{internship.duration}</p>
-                      <p className="text-xs text-slate-500 font-medium">{internship.type}</p>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-16 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-teal-500 rounded-full" 
-                            style={{ width: `${Math.min(100, (internship.applicantsCount / 500) * 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-bold text-slate-700">{internship.applicantsCount}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      {internship.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 size={14} /> Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                          <XCircle size={14} /> Draft
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 pr-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => handleToggleStatus(internship.id, internship.isActive)}
-                          className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                            internship.isActive 
-                              ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' 
-                              : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                          }`}
-                        >
-                          {internship.isActive ? 'Deactivate' : 'Publish'}
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setEditingInternship(internship);
-                            setIsModalOpen(true);
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                        <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                          <MoreVertical size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        {loading ? (
+          <div className="py-20 flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-500 border-t-transparent" />
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="text-lg font-semibold text-slate-700">No internships found.</p>
+            <p className="mt-2 text-slate-500">Try adjusting your search query.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-4 md:p-0">
+            {filteredData.map((internship) => (
+              <div key={internship.id} className="glass rounded-3xl overflow-hidden shadow-lg border border-white/60 group hover:shadow-[0_24px_70px_rgba(16,185,129,0.18)] transition-shadow duration-300 flex flex-col">
+                <div className="p-5 flex flex-col flex-1">
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="rounded-2xl bg-teal-50 text-teal-700 px-3 py-2 text-xs font-bold uppercase tracking-[0.24em]">
+                      {internship.domain || 'General'}
+                    </div>
+                    <div className={`rounded-full px-3 py-1.5 text-xs font-semibold ${internship.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {internship.isActive ? 'Active' : 'Draft'}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-extrabold text-slate-950 mb-3 leading-tight line-clamp-2">{internship.title}</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-6 line-clamp-3">{internship.description || 'No description provided.'}</p>
+
+                  <div className="grid gap-3 sm:grid-cols-2 mb-6">
+                    <div className="rounded-3xl bg-slate-50 p-4 border border-slate-100">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold mb-2">Duration</p>
+                      <p className="text-sm font-semibold text-slate-900">{internship.duration || 'TBA'}</p>
+                    </div>
+                    <div className="rounded-3xl bg-slate-50 p-4 border border-slate-100">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold mb-2">Type</p>
+                      <p className="text-sm font-semibold text-slate-900">{internship.type || 'Internship'}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
+                    <div className="text-sm font-semibold text-slate-700">
+                      Applicants <span className="text-teal-600">{internship.applicantsCount ?? 0}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleToggleStatus(internship.id, internship.isActive)}
+                        className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${internship.isActive ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}
+                      >
+                        {internship.isActive ? 'Deactivate' : 'Publish'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingInternship(internship);
+                          setIsModalOpen(true);
+                        }}
+                        className="rounded-2xl bg-white border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-teal-300 hover:text-teal-700 transition"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <AddInternshipModal 

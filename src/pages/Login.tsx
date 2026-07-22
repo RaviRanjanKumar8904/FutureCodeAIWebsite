@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
-import { Shield, Lock, GraduationCap, Building2, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Shield, Lock, GraduationCap, Building2, ArrowRight } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import SEO from '../components/SEO';
 
-type Role = 'student' | 'institute' | 'admin';
+type Role = 'student' | 'institute' | 'staff';
 
 export default function Login() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, signInWithOAuth } = useAuth();
   
   const [role, setRole] = useState<Role>('student');
@@ -19,16 +18,10 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      const from = (location.state as any)?.from;
-      if (from) {
-        navigate(from, { replace: true });
-        return;
-      }
-
-      // Redirect all users to the Home Page
+      // Always send users to the home page after login (ignore saved "from" state)
       navigate('/', { replace: true });
     }
-  }, [user, navigate, location.state]);
+  }, [user, navigate]);
 
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
     if (provider === 'google') setLoadingGoogle(true);
@@ -64,22 +57,22 @@ export default function Login() {
   const tabs = [
     { id: 'student', label: 'Student', icon: GraduationCap },
     { id: 'institute', label: 'Institute', icon: Building2 },
-    { id: 'admin', label: 'Admin', icon: ShieldCheck },
+    { id: 'staff', label: 'Staff', icon: Shield },
   ];
 
   return (
-    <div className="min-h-screen pt-20 bg-slate-900 flex items-center justify-center relative overflow-hidden font-body">
+    <div className="min-h-screen pt-20 bg-slate-50 flex items-center justify-center relative overflow-hidden font-body text-slate-900">
       <SEO 
         title="Login / Sign In" 
-        description="Access your FutureCodeAI dashboard. Secure login for students, institutes, and administrators."
+        description="Access your FutureCodeAI dashboard. Secure login for students, institutes, staff, and administrators."
       />
       <Toaster position="top-center" />
       
       {/* 3D Animated Background Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none flex items-center justify-center">
         {/* Glow Blobs */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-sky-200/40 rounded-full blur-[100px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-200/30 rounded-full blur-[100px]" />
         
         {/* Floating Shield 3D Effect */}
         <motion.div
@@ -115,18 +108,18 @@ export default function Login() {
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, type: 'spring', damping: 25 }}
-        className="w-full max-w-md mx-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl relative z-10"
+        className="w-full max-w-md mx-4 bg-white rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-[0_35px_60px_-30px_rgba(15,23,42,0.15)] relative z-10"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 mb-6 shadow-glow-primary">
-            <Shield className="text-white" size={32} />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-lg shadow-sky-200/40 mb-6 overflow-hidden">
+            <img src="/logo.jpg" alt="Company logo" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-3xl font-heading font-extrabold text-white mb-2 tracking-tight">Welcome Back</h1>
-          <p className="text-slate-300 font-medium">Sign in to access your FutureCodeAI portal</p>
+          <h1 className="text-3xl font-heading font-extrabold text-slate-900 mb-2 tracking-tight">Welcome</h1>
+          <p className="text-slate-600 font-medium">Sign in to access your FutureCodeAI portal</p>
         </div>
 
         {/* Role Tabs */}
-        <div className="bg-slate-900/50 p-1.5 rounded-2xl flex items-center mb-8 border border-white/5 relative">
+        <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center mb-8 border border-slate-200 relative">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = role === tab.id;
@@ -135,7 +128,7 @@ export default function Login() {
                 key={tab.id}
                 onClick={() => setRole(tab.id as Role)}
                 className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 px-1 sm:px-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 relative z-10 ${
-                  isActive ? 'text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  isActive ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700 hover:bg-white'
                 }`}
               >
                 <Icon size={16} className="sm:w-4 sm:h-4 w-5 h-5" />
@@ -143,7 +136,7 @@ export default function Login() {
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-white/10 border border-white/20 rounded-xl -z-10 shadow-soft"
+                    className="absolute inset-0 bg-white border border-slate-200 rounded-xl -z-10 shadow-sm"
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
@@ -152,25 +145,12 @@ export default function Login() {
           })}
         </div>
 
-        <AnimatePresence mode="wait">
-          {role === 'admin' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="bg-red-500/10 border border-red-500/20 text-red-200 text-sm p-4 rounded-xl mb-6 text-center"
-            >
-              <strong>Note:</strong> Admin self-signup is disabled.
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* OAuth Buttons */}
         <div className="space-y-4">
           <button 
             onClick={() => handleOAuthLogin('google')}
             disabled={loadingGoogle || loadingGithub}
-            className="w-full flex items-center justify-center gap-3 bg-white text-slate-800 hover:bg-gray-50 border border-gray-200 py-3.5 px-4 rounded-xl font-bold transition-all disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
+            className="w-full flex items-center justify-center gap-3 bg-white text-slate-800 hover:bg-slate-50 border border-slate-200 py-3.5 px-4 rounded-xl font-bold transition-all disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
           >
             {loadingGoogle ? (
               <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin" />
@@ -191,7 +171,7 @@ export default function Login() {
           <button 
             onClick={() => handleOAuthLogin('github')}
             disabled={loadingGoogle || loadingGithub}
-            className="w-full flex items-center justify-center gap-3 bg-[#24292e] text-white hover:bg-[#2f363d] py-3.5 px-4 rounded-xl font-bold transition-all disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
+            className="w-full flex items-center justify-center gap-3 bg-slate-800 text-white hover:bg-slate-700 py-3.5 px-4 rounded-xl font-bold transition-all disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
           >
             {loadingGithub ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -201,7 +181,7 @@ export default function Login() {
                   <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.379.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z" fill="currentColor"/>
                 </svg>
                 Continue with GitHub
-                <ArrowRight className="absolute right-4 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-white/50" size={20} />
+                <ArrowRight className="absolute right-4 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-slate-200" size={20} />
               </>
             )}
           </button>

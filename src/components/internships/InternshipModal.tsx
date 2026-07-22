@@ -28,28 +28,28 @@ export default function InternshipModal({ internship, onClose, onApply }: Intern
           initial={{ opacity: 0, y: 50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col z-10"
+          className="relative w-full max-w-[min(100%,calc(100vw-1.5rem))] max-w-4xl max-h-[calc(100vh-1.5rem)] bg-white rounded-[1.5rem] shadow-[0_28px_70px_-30px_rgba(15,23,42,0.45)] overflow-hidden flex flex-col z-10"
         >
           {/* Header */}
-          <div className="relative bg-gradient-to-r from-slate-900 to-[#152a4f] p-8 md:p-12 shrink-0">
+          <div className="relative bg-gradient-to-r from-slate-900 to-[#152a4f] p-6 sm:p-8 md:p-12 shrink-0">
             <button 
               onClick={onClose}
-              className="absolute top-4 right-4 bg-white/10 hover:bg-white text-white hover:text-slate-900 backdrop-blur-md p-2 rounded-full transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-slate-950/20 hover:bg-white text-white hover:text-slate-950 backdrop-blur-md p-2 rounded-full transition-colors"
             >
               <X size={24} />
             </button>
-            <div className="inline-block bg-primary text-white text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">
+            <div className="inline-block bg-primary text-white text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full mb-4 uppercase tracking-[0.22em]">
               {internship.domain}
             </div>
-            <h2 className="text-3xl md:text-5xl font-extrabold text-white">{internship.title}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight">{internship.title}</h2>
           </div>
 
           {/* Scrollable Body */}
-          <div className="flex-grow overflow-y-auto p-6 md:p-10 scrollbar-hide">
-            <div className="flex flex-col lg:flex-row gap-10">
+          <div className="flex-grow overflow-y-auto p-4 sm:p-6 md:p-8 scrollbar-hide">
+            <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
               
               {/* Main Content (Left) */}
-              <div className="w-full lg:w-2/3 space-y-10">
+              <div className="w-full lg:w-2/3 space-y-8">
                 <section>
                   <h3 className="text-2xl font-bold text-text-heading mb-4">Role Overview</h3>
                   <p className="text-slate-600 leading-relaxed text-lg">{internship.description}</p>
@@ -70,7 +70,7 @@ export default function InternshipModal({ internship, onClose, onApply }: Intern
 
               {/* Sidebar (Right) */}
               <div className="w-full lg:w-1/3">
-                <div className="bg-slate-50 border border-gray-100 rounded-2xl p-6 sticky top-0 space-y-6">
+                <div className="bg-slate-50 border border-slate-200 rounded-[1.5rem] p-5 sm:p-6 lg:p-6 lg:sticky lg:top-6 space-y-5 shadow-soft-lg">
                   
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">

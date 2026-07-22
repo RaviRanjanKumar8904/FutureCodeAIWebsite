@@ -13,6 +13,7 @@ export interface InternshipData {
   stipend: string;
   skills: string[];
   deadline: string;
+  thumbnailUrl?: string;
   isActive: boolean;
 }
 
@@ -60,8 +61,17 @@ export default function InternshipCard({ internship, index, onClick }: Internshi
           transformPerspective: 1000
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20, mass: 0.5 }}
-        className="glass rounded-2xl sm:rounded-3xl p-4 sm:p-8 cursor-pointer h-full flex flex-col group border border-white/60 hover:shadow-premium-card relative overflow-hidden"
+        className="glass rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer h-full flex flex-col group border border-white/60 hover:shadow-premium-card relative"
       >
+        <div className="relative h-44 sm:h-52 overflow-hidden bg-slate-100">
+          <img
+            src={internship.thumbnailUrl || 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=800'}
+            alt={internship.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/10 to-transparent" />
+        </div>
+
         {/* Dynamic Glare Overlay */}
         <motion.div 
           className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -70,7 +80,7 @@ export default function InternshipCard({ internship, index, onClick }: Internshi
           }}
         />
 
-        <div className="relative z-10 flex flex-col h-full">
+        <div className="relative z-10 flex flex-col h-full p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <Code2 size={20} className="sm:w-6 sm:h-6" />

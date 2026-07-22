@@ -19,6 +19,7 @@ const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const ManageCollaborators = lazy(() => import('./pages/admin/ManageCollaborators'));
 const ManageAdmins = lazy(() => import('./pages/admin/ManageAdmins'));
+const ManageStaff = lazy(() => import('./pages/admin/ManageStaff'));
 const ManageEnquiries = lazy(() => import('./pages/admin/ManageEnquiries'));
 const ManageCourses = lazy(() => import('./pages/admin/ManageCourses'));
 const ActivityLogs = lazy(() => import('./pages/admin/ActivityLogs'));
@@ -29,6 +30,7 @@ const ManageInternships = lazy(() => import('./pages/admin/ManageInternships'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
 const InstituteDashboard = lazy(() => import('./pages/InstituteDashboard'));
+const StaffDashboard = lazy(() => import('./pages/StaffDashboard'));
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -75,14 +77,31 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+
+            <Route 
+              path="/dashboard/staff/*" 
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  <StaffDashboard />
+                </ProtectedRoute>
+              } 
+            />
             {/* Additional routes will be added here */}
             
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
               <Route index element={<AdminDashboard />} />
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="collaborators" element={<ManageCollaborators />} />
               <Route path="admins" element={<ManageAdmins />} />
+              <Route path="staff" element={<ManageStaff />} />
               <Route path="enquiries" element={<ManageEnquiries />} />
               <Route path="courses" element={<ManageCourses />} />
               {/* Admin Modules */}

@@ -22,6 +22,7 @@ const ADMIN_NAV = [
   { name: 'Enquiries', path: '/admin/enquiries', icon: MessageSquare },
   { name: 'Collaborators', path: '/admin/collaborators', icon: Building2 },
   { name: 'Admins', path: '/admin/admins', icon: ShieldAlert },
+  { name: 'Staff', path: '/admin/staff', icon: Users },
   // Future sections placeholder:
   { name: 'Courses', path: '/admin/courses', icon: BookOpen },
   { name: 'Internships', path: '/admin/internships', icon: Briefcase },

@@ -23,6 +23,7 @@ export default function Navbar() {
   if (
     location.pathname.startsWith('/dashboard/student') || 
     location.pathname.startsWith('/dashboard/institute') ||
+    location.pathname.startsWith('/dashboard/staff') ||
     location.pathname.startsWith('/admin')
   ) {
     return null;
@@ -89,7 +90,7 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center gap-3">
                 <Link 
-                  to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : "/dashboard/student"}
+                  to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : user.role === 'staff' ? '/dashboard/staff' : "/dashboard/student"}
                   className={`hidden md:flex items-center gap-2 px-5 py-2.5 rounded-full font-bold transition-all hover:-translate-y-0.5 active:scale-95 ${
                     user.role === 'admin' 
                       ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-[0_4px_20px_rgba(245,158,11,0.4)] hover:shadow-[0_0_20px_rgba(245,158,11,0.6)]' 
@@ -97,7 +98,7 @@ export default function Navbar() {
                   }`}
                 >
                   <LayoutDashboard size={18} />
-                  {user.role === 'admin' ? 'Admin' : 'Dashboard'}
+                  {user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'Dashboard'}
                 </Link>
                 <div className="relative">
                   <button 
@@ -117,14 +118,14 @@ export default function Navbar() {
                       className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-soft-xl border border-gray-100 overflow-hidden"
                     >
                       <Link 
-                        to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : "/dashboard/student"} 
+                        to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : user.role === 'staff' ? '/dashboard/staff' : "/dashboard/student"} 
                         onClick={() => setDropdownOpen(false)}
                         className={`flex items-center gap-2 px-4 py-3 hover:bg-slate-50 text-sm font-medium transition-colors ${
                           user.role === 'admin' ? 'text-amber-600' : 'text-slate-700'
                         }`}
                       >
                         <LayoutDashboard size={16} />
-                        {user.role === 'admin' ? 'Admin' : 'Dashboard'}
+                        {user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'Dashboard'}
                       </Link>
                       <button 
                         onClick={() => {
@@ -205,14 +206,14 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link 
-                  to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : "/dashboard/student"} 
+                  to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'institute' ? "/dashboard/institute" : user.role === 'staff' ? '/dashboard/staff' : "/dashboard/student"} 
                   className={`flex items-center justify-center gap-2 text-base font-semibold py-2 ${
                     user.role === 'admin' ? 'text-amber-500' : 'text-text-heading'
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <LayoutDashboard size={18} />
-                  {user.role === 'admin' ? 'Admin' : 'Dashboard'}
+                  {user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'Dashboard'}
                 </Link>
                 <button 
                   onClick={() => {

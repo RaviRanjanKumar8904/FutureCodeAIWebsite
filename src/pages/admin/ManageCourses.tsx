@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '../../firebase/config';
 import { collection, getDocs, doc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { BookOpen, Search, Plus, MoreVertical, Edit2, CheckCircle2, XCircle } from 'lucide-react';
+import { BookOpen, Search, Plus } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import AddCourseModal from '../../components/admin/AddCourseModal';
 
@@ -93,94 +93,84 @@ export default function ManageCourses() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-bold">
-                <th className="p-4 pl-6">Course Details</th>
-                <th className="p-4">Duration & Level</th>
-                <th className="p-4">Enrollments</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right pr-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500 font-medium">Loading courses...</td>
-                </tr>
-              ) : filteredData.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500 font-medium">No courses found.</td>
-                </tr>
-              ) : (
-                filteredData.map((course) => (
-                  <tr key={course.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="p-4 pl-6">
-                      <p className="font-bold text-slate-900 mb-1">{course.title}</p>
-                      <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-500 uppercase tracking-wider">
-                        {course.category}
+        {loading ? (
+          <div className="py-20 flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent" />
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="text-lg font-semibold text-slate-700">No courses found.</p>
+            <p className="mt-2 text-slate-500">Try adjusting your search or category filter.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-4 md:p-0">
+            {filteredData.map((course) => (
+              <div key={course.id} className="glass rounded-3xl overflow-hidden shadow-lg border border-white/60 group hover:shadow-[0_24px_70px_rgba(79,70,229,0.16)] transition-shadow duration-300 flex flex-col">
+                <div className="relative h-56 overflow-hidden">
+                  <img
+                    src={course.thumbnailUrl || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800'}
+                    alt={course.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/10 to-transparent" />
+                  <div className="absolute left-4 top-4 flex flex-col gap-2">
+                    <span className="inline-flex px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] bg-white/90 text-slate-700 shadow-sm">
+                      {course.category}
+                    </span>
+                    {course.isTopSelling && (
+                      <span className="inline-flex px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.18em] bg-amber-500/95 text-white shadow-sm">
+                        Top Selling
                       </span>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-sm font-bold text-slate-700">{course.duration}</p>
-                      <p className="text-xs text-slate-500 font-medium">{course.level}</p>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-16 bg-slate-100 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-purple-500 rounded-full" 
-                            style={{ width: `${Math.min(100, (course.studentsCount / 200) * 100)}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-bold text-slate-700">{course.studentsCount}</span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      {course.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 size={14} /> Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                          <XCircle size={14} /> Draft
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 pr-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => handleToggleStatus(course.id, course.isActive)}
-                          className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                            course.isActive 
-                              ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' 
-                              : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
-                          }`}
-                        >
-                          {course.isActive ? 'Deactivate' : 'Publish'}
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setEditingCourse(course);
-                            setIsModalOpen(true);
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                        <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                          <MoreVertical size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    )}
+                  </div>
+                  <div className="absolute right-4 top-4">
+                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${course.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {course.isActive ? 'Active' : 'Draft'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-5 flex flex-col flex-1">
+                  <h3 className="text-xl font-extrabold text-slate-950 mb-2 line-clamp-2">{course.title}</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 mb-4">{course.description || 'No description available.'}</p>
+                  <div className="grid gap-3 sm:grid-cols-2 mb-5">
+                    <div className="rounded-3xl bg-slate-50 p-4 border border-slate-100">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold mb-2">Duration</p>
+                      <p className="text-sm font-semibold text-slate-900">{course.duration || 'TBA'}</p>
+                    </div>
+                    <div className="rounded-3xl bg-slate-50 p-4 border border-slate-100">
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-bold mb-2">Level</p>
+                      <p className="text-sm font-semibold text-slate-900">{course.level || 'Beginner'}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
+                    <div className="text-sm font-semibold text-slate-700">
+                      Enrollments <span className="text-primary">{course.studentsCount ?? 0}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleToggleStatus(course.id, course.isActive)}
+                        className={`rounded-2xl px-4 py-2 text-xs font-semibold transition ${course.isActive ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}
+                      >
+                        {course.isActive ? 'Deactivate' : 'Publish'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingCourse(course);
+                          setIsModalOpen(true);
+                        }}
+                        className="rounded-2xl bg-white border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-purple-300 hover:text-purple-700 transition"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <AddCourseModal 

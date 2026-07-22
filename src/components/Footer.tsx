@@ -8,6 +8,7 @@ export default function Footer() {
   if (
     location.pathname.startsWith('/dashboard/student') || 
     location.pathname.startsWith('/dashboard/institute') ||
+    location.pathname.startsWith('/dashboard/staff') ||
     location.pathname.startsWith('/admin')
   ) {
     return null;

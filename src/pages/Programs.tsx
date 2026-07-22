@@ -7,7 +7,6 @@ import ProgramsHero from '../components/programs/ProgramsHero';
 import FilterBar from '../components/programs/FilterBar';
 import CourseCard from '../components/programs/CourseCard';
 import type { CourseData } from '../components/programs/CourseCard';
-import CourseModal from '../components/programs/CourseModal';
 import EnquiryFormModal from '../components/programs/EnquiryFormModal';
 import type { TargetInfo } from '../components/programs/EnquiryFormModal';
 import CityCTA from '../components/programs/CityCTA';
@@ -17,9 +16,7 @@ export default function Programs() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
-  const [cityFilter, setCityFilter] = useState('All');
   
-  const [selectedCourse, setSelectedCourse] = useState<CourseData | null>(null);
   const [enquiringTarget, setEnquiringTarget] = useState<TargetInfo | null>(null);
 
   const location = useLocation();
@@ -53,22 +50,19 @@ export default function Programs() {
 
   // Derived state for filters
   const categories = useMemo(() => Array.from(new Set(courses.map(c => c.category))), [courses]);
-  const cities = useMemo(() => Array.from(new Set(courses.map(c => c.institute.city))), [courses]);
-
   const filteredCourses = useMemo(() => {
     return courses.filter(course => {
       const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             course.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter === 'All' || course.category === categoryFilter;
-      const matchesCity = cityFilter === 'All' || course.institute.city === cityFilter;
       
-      return matchesSearch && matchesCategory && matchesCity && course.isActive;
+      return matchesSearch && matchesCategory && course.isActive;
     }).sort((a, b) => {
       if (a.isTopSelling && !b.isTopSelling) return -1;
       if (!a.isTopSelling && b.isTopSelling) return 1;
       return 0; // maintain original order otherwise
     });
-  }, [courses, searchQuery, categoryFilter, cityFilter]);
+  }, [courses, searchQuery, categoryFilter]);
 
   const handleEnquire = (target: TargetInfo) => {
     setEnquiringTarget(target);
@@ -90,10 +84,7 @@ export default function Programs() {
           setSearchQuery={setSearchQuery}
           categoryFilter={categoryFilter}
           setCategoryFilter={setCategoryFilter}
-          cityFilter={cityFilter}
-          setCityFilter={setCityFilter}
           categories={categories}
-          cities={cities}
         />
 
         <section className="py-20 relative z-10 min-h-[50vh]">
@@ -109,7 +100,7 @@ export default function Programs() {
                     key={course.id} 
                     course={course} 
                     index={index} 
-                    onClick={() => setSelectedCourse(course)}
+                    onEnquire={(target) => handleEnquire(target)}
                   />
                 ))}
               </div>
@@ -121,7 +112,6 @@ export default function Programs() {
                   onClick={() => {
                     setSearchQuery('');
                     setCategoryFilter('All');
-                    setCityFilter('All');
                   }}
                   className="mt-6 bg-white border border-gray-200 text-text-heading px-6 py-2 rounded-full hover:bg-gray-50 transition-colors"
                 >
@@ -134,12 +124,6 @@ export default function Programs() {
 
         <CityCTA />
       </main>
-
-      <CourseModal 
-        course={selectedCourse} 
-        onClose={() => setSelectedCourse(null)}
-        onEnquire={handleEnquire}
-      />
 
       <EnquiryFormModal 
         isOpen={!!enquiringTarget}

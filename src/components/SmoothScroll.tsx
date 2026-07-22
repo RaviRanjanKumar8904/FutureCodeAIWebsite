@@ -3,7 +3,7 @@ import Lenis from 'lenis';
 import { useLocation } from 'react-router-dom';
 
 // Routes where Lenis must be completely disabled (app-shell dashboards with their own scroll containers)
-const DASHBOARD_PREFIXES = ['/dashboard/student', '/dashboard/institute', '/admin'];
+const DASHBOARD_PREFIXES = ['/dashboard/student', '/dashboard/institute', '/dashboard/staff', '/admin'];
 
 function isDashboardRoute(pathname: string) {
   return DASHBOARD_PREFIXES.some(prefix => pathname.startsWith(prefix));

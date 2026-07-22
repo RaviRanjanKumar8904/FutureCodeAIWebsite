@@ -1,21 +1,17 @@
-import { Search, MapPin, Layers } from 'lucide-react';
+import { Search, Layers } from 'lucide-react';
 
 interface FilterBarProps {
   searchQuery: string;
   setSearchQuery: (val: string) => void;
   categoryFilter: string;
   setCategoryFilter: (val: string) => void;
-  cityFilter: string;
-  setCityFilter: (val: string) => void;
   categories: string[];
-  cities: string[];
 }
 
 export default function FilterBar({
   searchQuery, setSearchQuery,
   categoryFilter, setCategoryFilter,
-  cityFilter, setCityFilter,
-  categories, cities
+  categories
 }: FilterBarProps) {
   return (
     <div className="bg-white sticky top-[72px] md:top-[88px] z-40 border-b border-gray-100 shadow-sm py-4">
@@ -45,19 +41,6 @@ export default function FilterBar({
               >
                 <option value="All">All Categories</option>
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            {/* City Filter */}
-            <div className="relative flex-1 md:w-48">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <select 
-                value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
-                className="w-full bg-slate-50 border border-gray-200 text-text-heading rounded-full py-3 pl-10 pr-8 outline-none focus:border-primary appearance-none cursor-pointer"
-              >
-                <option value="All">All Cities</option>
-                {cities.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>

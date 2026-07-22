@@ -11,7 +11,11 @@ import {
   setDoc, 
   updateDoc,
   onSnapshot,
-  serverTimestamp 
+  serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 
 export interface User {
@@ -19,7 +23,7 @@ export interface User {
   email: string;
   displayName: string;
   photoURL: string;
-  role: 'student' | 'admin' | 'institute';
+  role: 'student' | 'admin' | 'institute' | 'staff';
   status?: 'active' | 'pending_verification';
   phone?: string;
   school?: string;
@@ -34,7 +38,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithOAuth: (role: 'student' | 'admin' | 'institute', providerId: 'google' | 'github') => Promise<void>;
+  signInWithOAuth: (role: 'student' | 'admin' | 'institute' | 'staff', providerId: 'google' | 'github') => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
 }
@@ -89,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const signInWithOAuth = async (role: 'student' | 'admin' | 'institute', providerId: 'google' | 'github') => {
+  const signInWithOAuth = async (role: 'student' | 'admin' | 'institute' | 'staff', providerId: 'google' | 'github') => {
     const provider = providerId === 'google' ? googleProvider : githubProvider;
     
     const result = await signInWithPopup(auth, provider);
@@ -106,6 +110,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await auth.signOut();
         throw new Error('pending_verification');
       }
+
+      // Enforce staff allow-list for existing staff users as well
+      if (existingData.role === 'staff') {
+        const email = firebaseUser.email?.toLowerCase();
+        if (!email) {
+          await auth.signOut();
+          throw new Error('access_denied');
+        }
+        const staffQ = query(collection(db, 'staff'), where('email', '==', email));
+        const staffSnap = await getDocs(staffQ);
+        if (staffSnap.empty) {
+          await auth.signOut();
+          throw new Error('access_denied');
+        }
+      }
       
       // onSnapshot will pick up the existing data and call setUser
     } else {
@@ -114,10 +133,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const adminSnap = await getDoc(doc(db, 'admins', firebaseUser.uid));
       const isPreApprovedAdmin = adminSnap.exists() && adminSnap.data()?.pendingRole === 'admin';
 
+      // Check staff allow-list by email (admin can add staff by email)
+      let isPreApprovedStaff = false;
+      if (firebaseUser.email) {
+        const staffQ = query(collection(db, 'staff'), where('email', '==', firebaseUser.email.toLowerCase()));
+        const staffSnap = await getDocs(staffQ);
+        if (!staffSnap.empty) {
+          isPreApprovedStaff = true;
+        }
+      }
+
       // Hardcode super admin override
       const isSuperAdmin = firebaseUser.email === 'raviranjan8904@gmail.com';
 
-      let finalRole: 'student' | 'admin' | 'institute';
+      let finalRole: 'student' | 'admin' | 'institute' | 'staff';
 
       if (isSuperAdmin || isPreApprovedAdmin) {
         finalRole = 'admin';
@@ -125,8 +154,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Non-pre-approved user trying to sign up as admin
         await auth.signOut();
         throw new Error('access_denied');
+      } else if (role === 'staff') {
+        if (!isPreApprovedStaff) {
+          await auth.signOut();
+          throw new Error('access_denied');
+        }
+        finalRole = 'staff';
+      } else if (isPreApprovedStaff) {
+        finalRole = 'staff';
       } else {
-        finalRole = role;
+        finalRole = role as any;
       }
 
       const newUser: User = {

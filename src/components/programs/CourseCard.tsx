@@ -30,10 +30,10 @@ export interface CourseData {
 interface CourseCardProps {
   course: CourseData;
   index: number;
-  onClick: () => void;
+  onEnquire: (target: { id: string; title: string }) => void;
 }
 
-export default function CourseCard({ course, index, onClick }: CourseCardProps) {
+export default function CourseCard({ course, index, onEnquire }: CourseCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
@@ -65,14 +65,13 @@ export default function CourseCard({ course, index, onClick }: CourseCardProps) 
         ref={cardRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        onClick={onClick}
         animate={{
           rotateX,
           rotateY,
           transformPerspective: 1000
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20, mass: 0.5 }}
-        className="glass rounded-3xl overflow-hidden cursor-pointer h-full flex flex-col group border border-white/60 hover:shadow-[0_20px_40px_rgba(79,70,229,0.15)] relative"
+        className="glass rounded-3xl overflow-hidden h-full flex flex-col group border border-white/60 hover:shadow-[0_20px_40px_rgba(79,70,229,0.15)] relative"
       >
         {/* Dynamic Glare Overlay */}
         <motion.div 
@@ -130,8 +129,14 @@ export default function CourseCard({ course, index, onClick }: CourseCardProps) 
             )}
           </div>
 
-          <button className="mt-3 sm:mt-6 w-full py-2 sm:py-3 rounded-lg sm:rounded-xl bg-slate-100 text-primary text-xs sm:text-base font-bold group-hover:bg-primary group-hover:text-white group-hover:shadow-glow-primary transition-all duration-300">
-            View Details
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEnquire({ id: course.id, title: course.title });
+            }}
+            className="mt-3 sm:mt-6 w-full py-2 sm:py-3 rounded-lg sm:rounded-xl bg-primary text-white text-xs sm:text-base font-bold hover:bg-indigo-600 transition-all duration-300"
+          >
+            Enquire Now
           </button>
         </div>
       </motion.div>
